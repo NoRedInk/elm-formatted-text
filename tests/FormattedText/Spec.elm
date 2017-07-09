@@ -1,0 +1,115 @@
+module FormattedText.Spec exposing (spec)
+
+import Compare
+import Dict
+import Dict.Extra
+import EqualCheck exposing (EqualCheck)
+import Expect exposing (Expectation)
+import FormattedText as FormattedText exposing (FormattedText, Range)
+import FormattedText.Fuzz as Fuzz
+import Fuzz exposing (Fuzzer, list, string)
+import Test exposing (..)
+
+
+spec : Test
+spec =
+    describe "FormattedText"
+        [ fuzz formattedText "Formatted text ranges with equal markup never overlap" <|
+            \formatted ->
+                FormattedText.ranges formatted
+                    |> Dict.Extra.groupBy .tag
+                    |> Dict.values
+                    |> assertForAll rangesDontOverlap
+        , test "Ranges that do not overlap are not merged into one" <|
+            \_ ->
+                let
+                    text =
+                        "abcdefghij"
+
+                    ranges =
+                        [ { tag = "a", start = 0, end = 4 }, { tag = "a", start = 6, end = 8 } ]
+                in
+                FormattedText.formattedText text ranges
+                    |> FormattedText.ranges
+                    |> equalRanges ranges
+        , fuzz2 string string "#append" <|
+            \a b ->
+                FormattedText.append (FormattedText.fromString a) (FormattedText.fromString b)
+                    |> equalFormattedTexts (FormattedText.fromString <| a ++ b)
+        , fuzz (list string) "#concat" <|
+            \xs ->
+                List.map FormattedText.fromString xs
+                    |> FormattedText.concat
+                    |> equalFormattedTexts (FormattedText.fromString <| String.concat xs)
+        , fuzz string "fromString and text are duals" <|
+            \text ->
+                FormattedText.fromString text
+                    |> FormattedText.text
+                    |> Expect.equal text
+        , test "#chunks" <|
+            \_ ->
+                FormattedText.formattedText
+                    "foo bar baz"
+                    [ { tag = "a", start = 0, end = 3 }, { tag = "b", start = 8, end = 11 } ]
+                    |> FormattedText.chunks (,)
+                    |> Expect.equal [ ( "foo", [ "a" ] ), ( " bar ", [] ), ( "baz", [ "b" ] ) ]
+        , fuzz formattedText "chunks and unchunk are duals" <|
+            \formatted ->
+                formatted
+                    |> FormattedText.chunks (,)
+                    |> FormattedText.unchunk
+                    |> equalFormattedTexts formatted
+        ]
+
+
+equalFormattedTexts : EqualCheck (FormattedText markup)
+equalFormattedTexts formattedA formattedB =
+    formattedA
+        |> Expect.all
+            [ FormattedText.ranges >> equalRanges (FormattedText.ranges formattedB)
+            , FormattedText.text >> Expect.equal (FormattedText.text formattedB)
+            ]
+
+
+equalRanges : EqualCheck (List (Range markup))
+equalRanges rangesA rangesB =
+    let
+        orderRanges : Compare.Comparator (Range markup)
+        orderRanges =
+            Compare.concat [ Compare.by .start, Compare.by (.tag >> toString) ]
+    in
+    EqualCheck.listContents orderRanges rangesA rangesB
+
+
+rangesDontOverlap : List (Range markup) -> Expectation
+rangesDontOverlap ranges =
+    let
+        bounds : Range markup -> List Int
+        bounds { start, end } =
+            [ start, end ]
+    in
+    ranges
+        |> List.sortBy .start
+        |> List.concatMap bounds
+        |> (\bounds -> bounds |> Expect.equal (List.sort bounds))
+
+
+formattedText : Fuzzer (FormattedText Fuzz.Tag)
+formattedText =
+    Fuzz.formattedText Fuzz.tag
+
+
+{-| Whereas `Expect.all` allows you to run multiple assertions against a single piece of data,
+`assertForall` allows you to run a single assertion against multiple pieces of data.
+-}
+assertForAll : (a -> Expect.Expectation) -> List a -> Expect.Expectation
+assertForAll testFn cases =
+    case cases of
+        -- Expect.all will fail an empty list of expectations, which is not what we want here.
+        [] ->
+            Expect.pass
+
+        nonEmptyCases ->
+            nonEmptyCases
+                |> List.map (\singleCase _ -> testFn singleCase)
+                |> flip Expect.all ()
