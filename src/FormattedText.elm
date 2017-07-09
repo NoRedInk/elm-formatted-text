@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, empty, formatAll, formattedText, fromString, length, ranges, text, unchunk)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, empty, formatAll, formattedText, fromString, isEmpty, length, ranges, repeat, reverse, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons
 
 -}
 
@@ -97,20 +97,21 @@ append formattedA formattedB =
         shiftLength =
             String.length textA
 
-        shift : Range markup -> Range markup
-        shift range =
-            { range
-                | start = range.start + shiftLength
-                , end = range.end + shiftLength
-            }
-
         combinedRanges : List (Range markup)
         combinedRanges =
             rangesA
-                ++ List.map shift rangesB
+                ++ List.map (shift shiftLength) rangesB
     in
     Internal.fromString (textA ++ textB)
         |> (\formattedText -> List.foldl Internal.addRange formattedText combinedRanges)
+
+
+shift : Int -> Range markup -> Range markup
+shift amount range =
+    { range
+        | start = range.start + amount
+        , end = range.end + amount
+    }
 
 
 {-| -}
@@ -129,6 +130,61 @@ concat xs =
 length : FormattedText markup -> Int
 length =
     Internal.text >> String.length
+
+
+{-| -}
+isEmpty : FormattedText markup -> Bool
+isEmpty =
+    text >> String.isEmpty
+
+
+{-| -}
+reverse : FormattedText markup -> FormattedText markup
+reverse formatted =
+    let
+        inputLength : Int
+        inputLength =
+            length formatted
+
+        reverseRange : Range markup -> Range markup
+        reverseRange range =
+            { tag = range.tag
+            , start = inputLength - range.end
+            , end = inputLength - range.start
+            }
+    in
+    formattedText
+        (text formatted |> String.reverse)
+        (ranges formatted |> List.map reverseRange)
+
+
+{-| -}
+repeat : Int -> FormattedText markup -> FormattedText markup
+repeat n formatted =
+    List.repeat n formatted
+        |> concat
+
+
+{-| -}
+cons : Char -> FormattedText markup -> FormattedText markup
+cons char formatted =
+    append
+        (String.fromChar char |> fromString)
+        formatted
+
+
+{-| -}
+uncons : FormattedText markup -> Maybe ( Char, FormattedText markup )
+uncons formatted =
+    String.uncons (text formatted)
+        |> Maybe.map
+            (Tuple.mapSecond
+                (\rest ->
+                    formattedText
+                        rest
+                        (List.map (shift -1) (ranges formatted))
+                )
+            )
 
 
 {-| -}

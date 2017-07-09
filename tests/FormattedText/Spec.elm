@@ -7,7 +7,7 @@ import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FormattedText exposing (FormattedText, Range)
 import FormattedText.Fuzz as Fuzz
-import Fuzz exposing (Fuzzer, list, string)
+import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Test exposing (..)
 
 
@@ -59,7 +59,64 @@ spec =
                     |> FormattedText.chunks (,)
                     |> FormattedText.unchunk
                     |> equalFormattedTexts formatted
+        , describe "#reverse"
+            [ fuzz formattedText "reversing twice is equivalent to doing nothing" <|
+                \formatted ->
+                    formatted
+                        |> FormattedText.reverse
+                        |> FormattedText.reverse
+                        |> equalFormattedTexts formatted
+            , fuzz formattedText "works the same as String.reverse" <|
+                \formatted ->
+                    formatted
+                        |> FormattedText.reverse
+                        |> FormattedText.text
+                        |> Expect.equal (formatted |> FormattedText.text |> String.reverse)
+            ]
+        , fuzz2 formattedText (intRange 0 5) "#repeat" <|
+            \formatted n ->
+                formatted
+                    |> FormattedText.repeat n
+                    |> FormattedText.text
+                    |> Expect.equal (formatted |> FormattedText.text |> String.repeat n)
+        , describe "#cons"
+            [ fuzz formattedText "works the same as String.cons" <|
+                \formatted ->
+                    formatted
+                        |> FormattedText.cons 'a'
+                        |> FormattedText.text
+                        |> Expect.equal (formatted |> FormattedText.text |> String.cons 'a')
+            ]
+        , describe "#uncons"
+            [ fuzz formattedText "works the same as String.uncons" <|
+                \formatted ->
+                    formatted
+                        |> FormattedText.uncons
+                        |> Maybe.map (Tuple.mapSecond FormattedText.text)
+                        |> Expect.equal (formatted |> FormattedText.text |> String.uncons)
+            , fuzz formattedText "is the opposite of #cons" <|
+                \formatted ->
+                    formatted
+                        |> FormattedText.cons 'a'
+                        |> FormattedText.uncons
+                        |> just
+                            (Expect.all
+                                [ Tuple.first >> Expect.equal 'a'
+                                , Tuple.second >> equalFormattedTexts formatted
+                                ]
+                            )
+            ]
         ]
+
+
+just : (a -> Expectation) -> (Maybe a -> Expectation)
+just expectation maybe =
+    case maybe of
+        Nothing ->
+            Expect.fail "Expected a Just but got Nothing"
+
+        Just x ->
+            expectation x
 
 
 equalFormattedTexts : EqualCheck (FormattedText markup)

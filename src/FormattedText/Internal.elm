@@ -95,10 +95,10 @@ overlap a b =
         sameTags =
             a.tag == b.tag
 
-        overlap =
+        isOverlapping =
             a.start <= b.end && b.start <= a.end
     in
-    sameTags && overlap
+    sameTags && isOverlapping
 
 
 {-| -}
