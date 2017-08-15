@@ -106,6 +106,16 @@ spec =
                                 ]
                             )
             ]
+        , fuzz3 formattedText formattedText int "#left works the same as String.left" <|
+            \first last n ->
+                FormattedText.append first last
+                    |> FormattedText.left (FormattedText.length first)
+                    |> equalFormattedTexts first
+        , fuzz3 formattedText formattedText int "#right works the same as String.right" <|
+            \first last n ->
+                FormattedText.append first last
+                    |> FormattedText.right (FormattedText.length last)
+                    |> equalFormattedTexts last
         ]
 
 

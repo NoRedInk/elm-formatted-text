@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, empty, formatAll, formattedText, fromChar, fromString, isEmpty, length, ranges, repeat, reverse, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right
 
 -}
 
@@ -192,6 +192,26 @@ fromChar : Char -> FormattedText markup
 fromChar char =
     String.fromChar char
         |> fromString
+
+
+{-| -}
+left : Int -> FormattedText markup -> FormattedText markup
+left n formatted =
+    formattedText
+        (text formatted |> String.left n)
+        (ranges formatted)
+
+
+{-| -}
+right : Int -> FormattedText markup -> FormattedText markup
+right n formatted =
+    let
+        shiftLength =
+            max 0 n - length formatted
+    in
+    formattedText
+        (text formatted |> String.right n)
+        (ranges formatted |> List.map (shift shiftLength))
 
 
 {-| -}
