@@ -183,10 +183,10 @@ just expectation maybe =
 
 equalFormattedTexts : EqualCheck (FormattedText markup)
 equalFormattedTexts formattedA formattedB =
-    formattedA
+    formattedB
         |> Expect.all
-            [ FormattedText.ranges >> equalRanges (FormattedText.ranges formattedB)
-            , FormattedText.text >> Expect.equal (FormattedText.text formattedB)
+            [ FormattedText.ranges >> equalRanges (FormattedText.ranges formattedA)
+            , FormattedText.text >> Expect.equal (FormattedText.text formattedA)
             ]
 
 
