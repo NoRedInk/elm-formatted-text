@@ -168,6 +168,13 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.slice start end)
             ]
+        , describe ".split"
+            [ fuzz2 string formattedText "works the same as String.split" <|
+                \splitter formatted ->
+                    FormattedText.split splitter formatted
+                        |> List.map FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.split splitter)
+            ]
         ]
 
 

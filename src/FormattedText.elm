@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, slice, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split
 
 -}
 
@@ -194,12 +194,43 @@ fromChar char =
         |> fromString
 
 
+{-| -}
+split : String -> FormattedText markup -> List (FormattedText markup)
+split splitter formatted =
+    let
+        indices : List Int
+        indices =
+            if splitter == "" then
+                List.range 0 (length formatted - 1)
+            else
+                String.indices splitter (text formatted)
+    in
+    indices
+        |> List.foldr (splitHelper <| String.length splitter) ( [], formatted )
+        |> (\( splits, remainder ) ->
+                if String.isEmpty splitter then
+                    splits
+                else
+                    remainder :: splits
+           )
 
--- {-| -}
--- split : String -> FormattedText markup -> List (FormattedText markup)
--- split splitter formattedText =
---     indexes splitter (text formattedText)
---         |>
+
+splitHelper :
+    Int
+    -> Int
+    -> ( List (FormattedText markup), FormattedText markup )
+    -> ( List (FormattedText markup), FormattedText markup )
+splitHelper splitterLength splitterIndex ( splits, formatted ) =
+    let
+        chunk : FormattedText markup
+        chunk =
+            dropLeft splitterIndex formatted
+
+        remainder : FormattedText markup
+        remainder =
+            left (splitterIndex - splitterLength) formatted
+    in
+    ( chunk :: splits, remainder )
 
 
 {-| -}
