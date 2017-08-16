@@ -107,8 +107,8 @@ spec =
                             )
             ]
         , describe ".left"
-            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
-                \first last n ->
+            [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
+                \first last ->
                     FormattedText.append first last
                         |> FormattedText.left (FormattedText.length first)
                         |> equalFormattedTexts first
@@ -119,8 +119,8 @@ spec =
                         |> Expect.equal (FormattedText.text formatted |> String.left n)
             ]
         , describe ".right"
-            [ fuzz3 formattedText formattedText int "exactly replicates part of a formatted text" <|
-                \first last n ->
+            [ fuzz2 formattedText formattedText "exactly replicates part of a formatted text" <|
+                \first last ->
                     FormattedText.append first last
                         |> FormattedText.right (FormattedText.length last)
                         |> equalFormattedTexts last
@@ -131,8 +131,8 @@ spec =
                         |> Expect.equal (FormattedText.text formatted |> String.right n)
             ]
         , describe ".dropLeft"
-            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
-                \first last n ->
+            [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
+                \first last ->
                     FormattedText.append first last
                         |> FormattedText.dropLeft (FormattedText.length first)
                         |> equalFormattedTexts last
@@ -143,8 +143,8 @@ spec =
                         |> Expect.equal (FormattedText.text formatted |> String.dropLeft n)
             ]
         , describe ".dropRight"
-            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
-                \first last n ->
+            [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
+                \first last ->
                     FormattedText.append first last
                         |> FormattedText.dropRight (FormattedText.length last)
                         |> equalFormattedTexts first
