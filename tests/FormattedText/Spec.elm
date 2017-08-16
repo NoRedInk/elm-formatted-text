@@ -107,18 +107,28 @@ spec =
                             )
             ]
         , describe "#left"
-            [ fuzz3 formattedText formattedText int "works the same as String.left" <|
+            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
                 \first last n ->
                     FormattedText.append first last
                         |> FormattedText.left (FormattedText.length first)
                         |> equalFormattedTexts first
+            , fuzz2 formattedText int "works the same as String.left" <|
+                \formatted n ->
+                    FormattedText.left n formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.left n)
             ]
         , describe "#right"
-            [ fuzz3 formattedText formattedText int "#right works the same as String.right" <|
+            [ fuzz3 formattedText formattedText int "exactly replicates part of a formatted text" <|
                 \first last n ->
                     FormattedText.append first last
                         |> FormattedText.right (FormattedText.length last)
                         |> equalFormattedTexts last
+            , fuzz2 formattedText int "works the same as String.right" <|
+                \formatted n ->
+                    FormattedText.right n formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.right n)
             ]
         ]
 
