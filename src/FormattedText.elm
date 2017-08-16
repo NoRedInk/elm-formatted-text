@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, slice, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight
 
 -}
 
@@ -220,6 +220,46 @@ right n formatted =
     formattedText
         (text formatted |> String.right n)
         (ranges formatted |> List.map (shift shiftLength))
+
+
+{-| -}
+dropLeft : Int -> FormattedText markup -> FormattedText markup
+dropLeft n formatted =
+    right (length formatted - n) formatted
+
+
+{-| -}
+dropRight : Int -> FormattedText markup -> FormattedText markup
+dropRight n formatted =
+    left (length formatted - n) formatted
+
+
+{-| -}
+slice : Int -> Int -> FormattedText markup -> FormattedText markup
+slice start end formatted =
+    let
+        ln : Int
+        ln =
+            length formatted
+
+        fixBound : Int -> Int
+        fixBound n =
+            if n < 0 then
+                ln + n
+            else
+                n
+
+        leftBound : Int
+        leftBound =
+            fixBound start
+
+        rightBound : Int
+        rightBound =
+            ln - fixBound end
+    in
+    formatted
+        |> dropRight rightBound
+        |> dropLeft leftBound
 
 
 {-| -}

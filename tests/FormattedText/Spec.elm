@@ -130,6 +130,44 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.right n)
             ]
+        , describe ".dropLeft"
+            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
+                \first last n ->
+                    FormattedText.append first last
+                        |> FormattedText.dropLeft (FormattedText.length first)
+                        |> equalFormattedTexts last
+            , fuzz2 formattedText int "works the same as String.dropLeft" <|
+                \formatted n ->
+                    FormattedText.dropLeft n formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.dropLeft n)
+            ]
+        , describe ".dropRight"
+            [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
+                \first last n ->
+                    FormattedText.append first last
+                        |> FormattedText.dropRight (FormattedText.length last)
+                        |> equalFormattedTexts first
+            , fuzz2 formattedText int "works the same as String.dropRight" <|
+                \formatted n ->
+                    FormattedText.dropRight n formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.dropRight n)
+            ]
+        , describe ".slice"
+            [ fuzz3 formattedText formattedText formattedText "exactly replicated part of a formatted text" <|
+                \first middle last ->
+                    FormattedText.concat [ first, middle, last ]
+                        |> FormattedText.slice
+                            (FormattedText.length first)
+                            (FormattedText.length first + FormattedText.length middle)
+                        |> equalFormattedTexts middle
+            , fuzz3 formattedText int int "works the same as String.slice" <|
+                \formatted start end ->
+                    FormattedText.slice start end formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.slice start end)
+            ]
         ]
 
 
