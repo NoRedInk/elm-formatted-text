@@ -32,11 +32,11 @@ spec =
                 FormattedText.formattedText text ranges
                     |> FormattedText.ranges
                     |> equalRanges ranges
-        , fuzz2 string string "#append" <|
+        , fuzz2 string string ".append" <|
             \a b ->
                 FormattedText.append (FormattedText.fromString a) (FormattedText.fromString b)
                     |> equalFormattedTexts (FormattedText.fromString <| a ++ b)
-        , fuzz (list string) "#concat" <|
+        , fuzz (list string) ".concat" <|
             \xs ->
                 List.map FormattedText.fromString xs
                     |> FormattedText.concat
@@ -46,7 +46,7 @@ spec =
                 FormattedText.fromString text
                     |> FormattedText.text
                     |> Expect.equal text
-        , test "#chunks" <|
+        , test ".chunks" <|
             \_ ->
                 FormattedText.formattedText
                     "foo bar baz"
@@ -59,7 +59,7 @@ spec =
                     |> FormattedText.chunks (,)
                     |> FormattedText.unchunk
                     |> equalFormattedTexts formatted
-        , describe "#reverse"
+        , describe ".reverse"
             [ fuzz formattedText "reversing twice is equivalent to doing nothing" <|
                 \formatted ->
                     formatted
@@ -73,13 +73,13 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (formatted |> FormattedText.text |> String.reverse)
             ]
-        , fuzz2 formattedText (intRange 0 5) "#repeat" <|
+        , fuzz2 formattedText (intRange 0 5) ".repeat" <|
             \formatted n ->
                 formatted
                     |> FormattedText.repeat n
                     |> FormattedText.text
                     |> Expect.equal (formatted |> FormattedText.text |> String.repeat n)
-        , describe "#cons"
+        , describe ".cons"
             [ fuzz formattedText "works the same as String.cons" <|
                 \formatted ->
                     formatted
@@ -87,14 +87,14 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (formatted |> FormattedText.text |> String.cons 'a')
             ]
-        , describe "#uncons"
+        , describe ".uncons"
             [ fuzz formattedText "works the same as String.uncons" <|
                 \formatted ->
                     formatted
                         |> FormattedText.uncons
                         |> Maybe.map (Tuple.mapSecond FormattedText.text)
                         |> Expect.equal (formatted |> FormattedText.text |> String.uncons)
-            , fuzz formattedText "is the opposite of #cons" <|
+            , fuzz formattedText "is the opposite of .cons" <|
                 \formatted ->
                     formatted
                         |> FormattedText.cons 'a'
@@ -106,7 +106,7 @@ spec =
                                 ]
                             )
             ]
-        , describe "#left"
+        , describe ".left"
             [ fuzz3 formattedText formattedText int "exactly replicates part of a formated text" <|
                 \first last n ->
                     FormattedText.append first last
@@ -118,7 +118,7 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.left n)
             ]
-        , describe "#right"
+        , describe ".right"
             [ fuzz3 formattedText formattedText int "exactly replicates part of a formatted text" <|
                 \first last n ->
                     FormattedText.append first last
