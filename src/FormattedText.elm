@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, left, length, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,8 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split
+
+# @docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join
 
 -}
 
@@ -231,6 +232,13 @@ splitHelper splitterLength splitterIndex ( splits, formatted ) =
             left splitterIndex formatted
     in
     ( chunk :: splits, remainder )
+
+
+{-| -}
+join : FormattedText markup -> List (FormattedText markup) -> FormattedText markup
+join joiner parts =
+    List.intersperse joiner parts
+        |> concat
 
 
 {-| -}

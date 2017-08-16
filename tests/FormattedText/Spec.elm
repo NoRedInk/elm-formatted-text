@@ -182,6 +182,13 @@ spec =
                         |> List.map FormattedText.text
                         |> Expect.equal [ "", "" ]
             ]
+        , describe ".join"
+            [ fuzz2 formattedText (shortList formattedText) "works the same as String.join" <|
+                \joiner parts ->
+                    FormattedText.join joiner parts
+                        |> FormattedText.text
+                        |> Expect.equal (String.join (FormattedText.text joiner) (List.map FormattedText.text parts))
+            ]
         ]
 
 
@@ -246,3 +253,12 @@ assertForAll testFn cases =
             nonEmptyCases
                 |> List.map (\singleCase _ -> testFn singleCase)
                 |> flip Expect.all ()
+
+
+shortList : Fuzzer a -> Fuzzer (List a)
+shortList fuzzer =
+    Fuzz.oneOf
+        [ Fuzz.constant []
+        , Fuzz.map (\a -> [ a ]) fuzzer
+        , Fuzz.map2 (\a b -> [ a, b ]) fuzzer fuzzer
+        ]
