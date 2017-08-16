@@ -174,6 +174,18 @@ spec =
                     FormattedText.split splitter formatted
                         |> List.map FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.split splitter)
+            , test "splitter and text are the same" <|
+                \_ ->
+                    FormattedText.split "#" (FormattedText.fromString "#")
+                        |> List.map FormattedText.text
+                        |> Expect.equal [ "", "" ]
+            ]
+        , describe ".join"
+            [ fuzz2 formattedText (list formattedText) "works the same as String.join" <|
+                \joiner parts ->
+                    FormattedText.join joiner parts
+                        |> FormattedText.text
+                        |> Expect.equal (String.join (FormattedText.text joiner) (List.map FormattedText.text parts))
             ]
         ]
 
