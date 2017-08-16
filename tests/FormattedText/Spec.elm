@@ -189,6 +189,18 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (String.join (FormattedText.text joiner) (List.map FormattedText.text parts))
             ]
+        , fuzz (atLeastOneList formattedText) ".join and .split are duals" <|
+            \parts ->
+                let
+                    -- As of writing, string fuzzers will not generate these characters,
+                    -- so we can be sure the fuzzer won't accidentally insert them into the parts.
+                    splitter : String
+                    splitter =
+                        "😁🐢"
+                in
+                FormattedText.join (FormattedText.fromString splitter) parts
+                    |> FormattedText.split splitter
+                    |> equalLists equalFormattedTexts parts
         ]
 
 
@@ -255,6 +267,11 @@ assertForAll testFn cases =
                 |> flip Expect.all ()
 
 
+expectAnd : Expect.Expectation -> Expect.Expectation -> Expect.Expectation
+expectAnd a b =
+    Expect.all [ always a, always b ] ()
+
+
 shortList : Fuzzer a -> Fuzzer (List a)
 shortList fuzzer =
     Fuzz.oneOf
@@ -262,3 +279,26 @@ shortList fuzzer =
         , Fuzz.map (\a -> [ a ]) fuzzer
         , Fuzz.map2 (\a b -> [ a, b ]) fuzzer fuzzer
         ]
+
+
+atLeastOneList : Fuzzer a -> Fuzzer (List a)
+atLeastOneList fuzzer =
+    Fuzz.oneOf
+        [ Fuzz.map (\a -> [ a ]) fuzzer
+        , Fuzz.map2 (\a b -> [ a, b ]) fuzzer fuzzer
+        ]
+
+
+{-| TODO: Move this into EqualCheck
+-}
+equalLists : EqualCheck a -> List a -> List a -> Expect.Expectation
+equalLists check xs ys =
+    case ( xs, ys ) of
+        ( [], [] ) ->
+            Expect.pass
+
+        ( x :: xs, y :: ys ) ->
+            expectAnd (check x y) (equalLists check xs ys)
+
+        _ ->
+            Expect.fail <| "Lists are not the same: " ++ toString ( xs, ys )
