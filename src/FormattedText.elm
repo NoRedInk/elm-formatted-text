@@ -194,6 +194,14 @@ fromChar char =
         |> fromString
 
 
+
+-- {-| -}
+-- split : String -> FormattedText markup -> List (FormattedText markup)
+-- split splitter formattedText =
+--     indexes splitter (text formattedText)
+--         |>
+
+
 {-| -}
 left : Int -> FormattedText markup -> FormattedText markup
 left n formatted =
