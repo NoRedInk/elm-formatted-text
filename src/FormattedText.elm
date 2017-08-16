@@ -103,7 +103,7 @@ append formattedA formattedB =
                 ++ List.map (shift shiftLength) rangesB
     in
     Internal.fromString (textA ++ textB)
-        |> (\formattedText -> List.foldl Internal.addRange formattedText combinedRanges)
+        |> (\formatted -> List.foldl Internal.addRange formatted combinedRanges)
 
 
 shift : Int -> Range markup -> Range markup
@@ -231,8 +231,8 @@ formattedText text ranges =
 {-| Apply some formatting to the entirety of a piece of formatted text.
 -}
 formatAll : markup -> FormattedText markup -> FormattedText markup
-formatAll tag formattedText =
-    Internal.addRange { tag = tag, start = 0, end = length formattedText } formattedText
+formatAll tag formatted =
+    Internal.addRange { tag = tag, start = 0, end = length formatted } formatted
 
 
 {-| Helper type for the chunks function.
