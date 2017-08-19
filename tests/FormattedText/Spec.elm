@@ -201,6 +201,13 @@ spec =
                 FormattedText.join (FormattedText.fromString splitter) parts
                     |> FormattedText.split splitter
                     |> equalLists equalFormattedTexts parts
+        , describe ".lines"
+            [ fuzz formattedText "works the same as String.lines" <|
+                \formatted ->
+                    FormattedText.lines formatted
+                        |> List.map FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.lines)
+            ]
         ]
 
 
