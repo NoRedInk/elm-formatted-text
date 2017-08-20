@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, padLeft, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -394,6 +394,25 @@ toLower formatted =
     formattedText
         (String.toLower <| text formatted)
         (ranges formatted)
+
+
+{-| -}
+padLeft : Int -> Char -> List markup -> FormattedText markup -> FormattedText markup
+padLeft upTo char markups formatted =
+    let
+        amount : Int
+        amount =
+            upTo - length formatted
+
+        paddingString : String
+        paddingString =
+            String.repeat amount (String.fromChar char)
+
+        padding : FormattedText markup
+        padding =
+            List.foldl formatAll (fromString paddingString) markups
+    in
+    append padding formatted
 
 
 {-| Helper type for the chunks function.

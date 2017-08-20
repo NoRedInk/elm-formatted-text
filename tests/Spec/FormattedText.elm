@@ -394,6 +394,29 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.toLower)
             ]
+        , describe ".padLeft"
+            [ fuzz3 char (intRange -10 1000) formattedText "works like String.padLeft" <|
+                \char upTo formatted ->
+                    FormattedText.padLeft upTo char [] formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.padLeft upTo char)
+            , fuzz3 char (intRange -10 1000) formattedText "Adds the right markup to the padding" <|
+                \char upTo formatted ->
+                    let
+                        paddingLength : Int
+                        paddingLength =
+                            upTo - FormattedText.length formatted
+
+                        padding : FormattedText Markup
+                        padding =
+                            FormattedText.fromChar char
+                                |> FormattedText.formatAll Yellow
+                                |> FormattedText.repeat paddingLength
+                    in
+                    FormattedText.padLeft upTo char [ Yellow ] formatted
+                        |> FormattedText.left paddingLength
+                        |> equalFormattedTexts padding
+            ]
         ]
 
 
