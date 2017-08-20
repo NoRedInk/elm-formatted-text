@@ -1,8 +1,8 @@
-module FormattedText.Regex exposing (Match, find, replace)
+module FormattedText.Regex exposing (Match, find, replace, split)
 
 {-| Regex operations for FormattedText
 
-@docs Match, find, replace
+@docs Match, find, replace, split
 
 -}
 
@@ -51,11 +51,9 @@ replace howMany regex replacer formatted =
     let
         replaceMatch : Match markup -> FormattedText markup -> FormattedText markup
         replaceMatch match formatted =
-            replaceSlice
-                match.index
-                (match.index + length match.match)
-                (replacer match)
-                formatted
+            case splitAround match formatted of
+                ( before, after ) ->
+                    concat [ before, replacer match, after ]
     in
     find howMany regex formatted
         -- It's important to fold from the right here.
@@ -65,15 +63,43 @@ replace howMany regex replacer formatted =
         |> List.foldr replaceMatch formatted
 
 
-replaceSlice : Int -> Int -> FormattedText markup -> FormattedText markup -> FormattedText markup
-replaceSlice start end part whole =
+{-| -}
+split : Regex.HowMany -> Regex -> FormattedText markup -> List (FormattedText markup)
+split howMany regex formatted =
     let
-        first : FormattedText markup
-        first =
-            left start whole
+        splitAroundMatch :
+            Match markup
+            -> ( FormattedText markup, List (FormattedText markup) )
+            -> ( FormattedText markup, List (FormattedText markup) )
+        splitAroundMatch match ( remaining, chunks ) =
+            case splitAround match remaining of
+                ( before, after ) ->
+                    ( before, after :: chunks )
 
-        last : FormattedText markup
-        last =
-            dropLeft end whole
+        -- `Regex.split` treats negative `AtMost` values as `All`, `Regex.find` treats them as `AtMost 0.
+        -- Because we want to implement the `split behaviour` using `find` we need to transform.
+        fixedHowMany : Regex.HowMany
+        fixedHowMany =
+            case howMany of
+                Regex.All ->
+                    howMany
+
+                Regex.AtMost n ->
+                    if n < 0 then
+                        Regex.All
+                    else
+                        howMany
     in
-    concat [ first, part, last ]
+    find fixedHowMany regex formatted
+        -- It's important to fold from the right here.
+        -- By chopping of chunks from the right side,
+        -- the indexes of other matches to the left remain valid.
+        |> List.foldr splitAroundMatch ( formatted, [] )
+        |> (\( last, chunks ) -> last :: chunks)
+
+
+splitAround : Match markup -> FormattedText markup -> ( FormattedText markup, FormattedText markup )
+splitAround { match, index } formatted =
+    ( left index formatted
+    , dropLeft (index + length match) formatted
+    )

@@ -87,6 +87,51 @@ spec =
                     FormattedText.Regex.replace howMany regex (.match >> identity) formatted
                         |> equalFormattedTexts formatted
             ]
+        , describe ".split"
+            [ fuzz2 howMany formattedText "works the same as Regex.split" <|
+                \howMany formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+                    in
+                    FormattedText.Regex.split howMany regex formatted
+                        |> List.map FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> Regex.split howMany regex)
+            , fuzz2 howMany formattedText "results from .find and .split constructor original input" <|
+                \howMany formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+
+                        -- `Regex.split` treats negative `AtMost` values as `All`, `Regex.find` treats them as `AtMost 0.
+                        -- Because we want to implement the `split behaviour` using `find` we need to transform.
+                        fixedHowMany : Regex.HowMany
+                        fixedHowMany =
+                            case howMany of
+                                Regex.All ->
+                                    howMany
+
+                                Regex.AtMost n ->
+                                    if n < 0 then
+                                        Regex.All
+                                    else
+                                        howMany
+
+                        matches : List (FormattedText Int)
+                        matches =
+                            FormattedText.Regex.find fixedHowMany regex formatted
+                                |> List.map .match
+
+                        nonMatches : List (FormattedText Int)
+                        nonMatches =
+                            FormattedText.Regex.split fixedHowMany regex formatted
+                    in
+                    interweave nonMatches matches
+                        |> FormattedText.concat
+                        |> equalFormattedTexts formatted
+            ]
         ]
 
 
@@ -115,3 +160,14 @@ howMany =
         [ Fuzz.constant Regex.All
         , Fuzz.map Regex.AtMost Fuzz.int
         ]
+
+
+{-| Create a new list by taking turns taking an element from two lists, starting with the first list.
+-}
+interweave : List a -> List a -> List a
+interweave xs ys =
+    List.map2 (\x y -> [ x, y ]) xs ys
+        |> List.concat
+        -- If either list is longer than the other, append its remainder.
+        |> flip List.append (List.drop (List.length xs) ys)
+        |> flip List.append (List.drop (List.length ys) xs)
