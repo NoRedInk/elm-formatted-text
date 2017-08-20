@@ -228,4 +228,11 @@ spec =
                         |> FormattedText.concat
                         |> equalFormattedTexts noWhitespace
             ]
+        , describe ".trim"
+            [ fuzz formattedText "works the same as String.trim" <|
+                \formatted ->
+                    FormattedText.trim formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.trim)
+            ]
         ]
