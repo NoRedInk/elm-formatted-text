@@ -4,7 +4,7 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (customFormattedText, formattedText, markup)
+import FormattedText.Fuzz exposing (Markup, customFormattedText, formattedText, markup)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
@@ -255,11 +255,7 @@ spec =
                 \part whole ->
                     FormattedText.indexes (FormattedText.fromString part) (FormattedText.fromString whole)
                         |> Expect.equal (String.indexes part whole)
-            , fuzz2
-                (customFormattedText repetitiveStringElement markup)
-                (customFormattedText repetitiveString markup)
-                "only shows indexes when formats match too"
-              <|
+            , fuzz2 repetitiveFText repetitiveFTextElement "only shows indexes when formats match too" <|
                 \part whole ->
                     let
                         stringIndexes : List Int
@@ -269,25 +265,34 @@ spec =
                         formattedIndexes : List Int
                         formattedIndexes =
                             FormattedText.indexes part whole
-
-                        assertPartAt : Int -> Expectation
-                        assertPartAt index =
-                            FormattedText.slice index (index + FormattedText.length part) whole
-                                |> Expect.equal part
-
-                        assertPartNotAt : Int -> Expectation
-                        assertPartNotAt index =
-                            FormattedText.slice index (index + FormattedText.length part) whole
-                                |> Expect.notEqual part
                     in
                     stringIndexes
                         |> assertForAll
                             (\index ->
                                 if List.member index formattedIndexes then
-                                    assertPartAt index
+                                    assertPartAt part whole index
                                 else
-                                    assertPartNotAt index
+                                    assertPartNotAt part whole index
                             )
+            ]
+        , describe ".contains"
+            [ fuzz2 repetitiveStringElement repetitiveString "works the same as .contains" <|
+                \part whole ->
+                    FormattedText.contains (FormattedText.fromString part) (FormattedText.fromString whole)
+                        |> Expect.equal (String.contains part whole)
+            , fuzz2 repetitiveFText repetitiveFTextElement "only returns true if markup matches" <|
+                \part whole ->
+                    let
+                        stringIndexes =
+                            String.indexes (FormattedText.text part) (FormattedText.text whole)
+                    in
+                    if FormattedText.contains part whole then
+                        -- This branch where we have a match is hard to test because we'd need an assertAny.
+                        -- It's also already covered by the previous test.
+                        Expect.pass
+                    else
+                        stringIndexes
+                            |> assertForAll (\index -> assertPartNotAt part whole index)
             ]
         ]
 
@@ -306,3 +311,25 @@ repetitiveStringElement =
         , Fuzz.constant "ccc"
         , string
         ]
+
+
+repetitiveFText : Fuzzer (FormattedText Markup)
+repetitiveFText =
+    customFormattedText repetitiveStringElement markup
+
+
+repetitiveFTextElement : Fuzzer (FormattedText Markup)
+repetitiveFTextElement =
+    customFormattedText repetitiveString markup
+
+
+assertPartAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
+assertPartAt part whole index =
+    FormattedText.slice index (index + FormattedText.length part) whole
+        |> Expect.equal part
+
+
+assertPartNotAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
+assertPartNotAt part whole index =
+    FormattedText.slice index (index + FormattedText.length part) whole
+        |> Expect.notEqual part
