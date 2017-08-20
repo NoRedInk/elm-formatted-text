@@ -19,6 +19,7 @@ type Markup
     = Red
     | Blue
     | Green
+    | Yellow
 
 
 {-| Fuzzer of FormattedText types.
@@ -46,6 +47,7 @@ Because any type can be used as a markup this is just a suggestion provided for 
 -}
 markup : Fuzzer Markup
 markup =
+    -- We're purposefully never fuzzing Yellow to give tests a fact to play with.
     oneOf [ constant Red, constant Blue, constant Green ]
 
 

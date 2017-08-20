@@ -4,7 +4,7 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (Markup, customFormattedText, formattedText, markup)
+import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, formattedText, markup)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
@@ -276,11 +276,11 @@ spec =
                             )
             ]
         , describe ".contains"
-            [ fuzz2 repetitiveStringElement repetitiveString "works the same as .contains" <|
+            [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.contains" <|
                 \part whole ->
                     FormattedText.contains (FormattedText.fromString part) (FormattedText.fromString whole)
                         |> Expect.equal (String.contains part whole)
-            , fuzz2 repetitiveFText repetitiveFTextElement "only returns true if markup matches" <|
+            , fuzz2 repetitiveFText repetitiveFTextElement "returns false if markup does not match" <|
                 \part whole ->
                     let
                         stringIndexes =
@@ -293,6 +293,37 @@ spec =
                     else
                         stringIndexes
                             |> assertForAll (\index -> assertPartNotAt part whole index)
+            ]
+        , describe ".startsWith"
+            [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.startsWith" <|
+                \start whole ->
+                    FormattedText.startsWith (FormattedText.fromString start) (FormattedText.fromString whole)
+                        |> Expect.equal (String.startsWith start whole)
+            , fuzz2 formattedText formattedText "returns true if the markup matches" <|
+                \start end ->
+                    let
+                        whole : FormattedText Markup
+                        whole =
+                            FormattedText.append start end
+                    in
+                    FormattedText.startsWith start whole
+                        |> Expect.true "Expected startsWith to return true"
+            , fuzz2 formattedText formattedText "returns false if markup does not match" <|
+                \start end ->
+                    let
+                        modifiedStart : FormattedText Markup
+                        modifiedStart =
+                            FormattedText.addRange { tag = Yellow, start = 0, end = 1 } start
+
+                        whole : FormattedText Markup
+                        whole =
+                            FormattedText.append start end
+                    in
+                    if FormattedText.isEmpty start then
+                        Expect.pass
+                    else
+                        FormattedText.startsWith modifiedStart whole
+                            |> Expect.false "Expected startsWith to return false"
             ]
         ]
 
