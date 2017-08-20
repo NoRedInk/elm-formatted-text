@@ -1,4 +1,4 @@
-module FormattedText.Fuzz exposing (Tag, formattedText, tag)
+module FormattedText.Fuzz exposing (Tag(..), customFormattedText, formattedText, tag)
 
 import FormattedText exposing (FormattedText, Range)
 import Fuzz exposing (..)
@@ -10,6 +10,29 @@ type Tag
     | Green
 
 
+{-| Fuzzer of FormattedText types.
+-}
+formattedText : Fuzzer (FormattedText Tag)
+formattedText =
+    customFormattedText string tag
+
+
+{-| Customizable fuzzer of FormattedText types.
+
+You can use your own text and tag fuzzers or use the standard `string` fuzzer
+and the tag fuzzer provided by this module.
+
+-}
+customFormattedText : Fuzzer String -> Fuzzer tag -> Fuzzer (FormattedText tag)
+customFormattedText textFuzzer tagFuzzer =
+    map2 buildFormattedText textFuzzer (shortList (protoRange tagFuzzer))
+
+
+{-| Fuzzer of FormattedText tags.
+
+Because any type can be used as a tag this is just a suggestion provided for the lazy developer ;).
+
+-}
 tag : Fuzzer Tag
 tag =
     oneOf [ constant Red, constant Blue, constant Green ]
@@ -60,11 +83,6 @@ protoRange tagFuzzer =
         [ ( 1, map coverCompletely tagFuzzer )
         , ( 5, map3 coverPartially tagFuzzer int int )
         ]
-
-
-formattedText : Fuzzer tag -> Fuzzer (FormattedText tag)
-formattedText tagFuzzer =
-    map2 buildFormattedText string (shortList (protoRange tagFuzzer))
 
 
 buildFormattedText : String -> List (String -> Range tag) -> FormattedText tag

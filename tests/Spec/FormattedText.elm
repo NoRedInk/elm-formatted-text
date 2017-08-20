@@ -4,11 +4,12 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
+import FormattedText.Fuzz exposing (formattedText)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
 import Test exposing (..)
-import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, formattedText, just, rangesDontOverlap, shortList)
+import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, just, rangesDontOverlap, shortList)
 
 
 spec : Test

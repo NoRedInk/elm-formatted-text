@@ -10,12 +10,7 @@ import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
-
-
-type alias Tag =
-    FormattedText.Fuzz.Tag
 
 
 just : (a -> Expectation) -> (Maybe a -> Expectation)
@@ -58,11 +53,6 @@ rangesDontOverlap ranges =
         |> List.sortBy .start
         |> List.concatMap bounds
         |> (\bounds -> bounds |> Expect.equal (List.sort bounds))
-
-
-formattedText : Fuzzer (FormattedText FormattedText.Fuzz.Tag)
-formattedText =
-    FormattedText.Fuzz.formattedText FormattedText.Fuzz.tag
 
 
 {-| Whereas `Expect.all` allows you to run multiple assertions against a single piece of data,

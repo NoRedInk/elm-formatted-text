@@ -2,11 +2,12 @@ module Spec.FormattedText.Regex exposing (spec)
 
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
+import FormattedText.Fuzz exposing (Tag, formattedText)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
 import Test exposing (..)
-import Util exposing (Tag, assertForAll, equalFormattedTexts, formattedText)
+import Util exposing (assertForAll, equalFormattedTexts)
 
 
 spec : Test
