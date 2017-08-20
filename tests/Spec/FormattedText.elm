@@ -4,7 +4,9 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
+import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
+import Regex
 import Test exposing (..)
 import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, formattedText, just, rangesDontOverlap, shortList)
 
@@ -205,5 +207,25 @@ spec =
                     FormattedText.lines formatted
                         |> List.map FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.lines)
+            ]
+        , describe ".words"
+            [ fuzz formattedText "works the same as String.words" <|
+                \formatted ->
+                    FormattedText.words formatted
+                        |> List.map FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.words)
+            , fuzz formattedText ".words >> .concatenate removes all whitespace" <|
+                \formatted ->
+                    let
+                        noWhitespace =
+                            FormattedText.Regex.replace
+                                Regex.All
+                                (Regex.regex "\\s+")
+                                (always FormattedText.empty)
+                                formatted
+                    in
+                    FormattedText.words formatted
+                        |> FormattedText.concat
+                        |> equalFormattedTexts noWhitespace
             ]
         ]

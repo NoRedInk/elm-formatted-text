@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,12 +15,14 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words
 
 -}
 
 import FormattedText.Internal as Internal
+import FormattedText.Regex
 import FormattedText.Shared as Shared
+import Regex
 
 
 {-| Text with formatting.
@@ -240,6 +242,24 @@ slice =
 lines : FormattedText markup -> List (FormattedText markup)
 lines formatted =
     split "\n" formatted
+
+
+{-| -}
+words : FormattedText markup -> List (FormattedText markup)
+words formatted =
+    FormattedText.Regex.split
+        Regex.All
+        (Regex.regex "\\s+")
+        (trim formatted)
+
+
+trim : FormattedText markup -> FormattedText markup
+trim formatted =
+    FormattedText.Regex.replace
+        Regex.All
+        (Regex.regex "(^\\s+)|(\\s+$)")
+        (always empty)
+        formatted
 
 
 {-| -}
