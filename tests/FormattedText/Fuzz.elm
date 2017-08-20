@@ -1,4 +1,4 @@
-module FormattedText.Fuzz exposing (..)
+module FormattedText.Fuzz exposing (Tag, formattedText, tag)
 
 import FormattedText exposing (FormattedText, Range)
 import Fuzz exposing (..)

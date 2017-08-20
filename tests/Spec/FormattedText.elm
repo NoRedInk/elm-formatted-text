@@ -1,9 +1,9 @@
-module FormattedText.Spec exposing (spec)
+module Spec.FormattedText exposing (spec)
 
 import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
-import FormattedText as FormattedText exposing (FormattedText, Range)
+import FormattedText exposing (FormattedText, Range)
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Test exposing (..)
 import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, formattedText, just, rangesDontOverlap, shortList)

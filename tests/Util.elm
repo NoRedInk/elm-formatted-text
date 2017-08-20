@@ -9,8 +9,8 @@ Some of these methods might fit nicely into libraries.
 import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
-import FormattedText as FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz as Fuzz
+import FormattedText exposing (FormattedText, Range)
+import FormattedText.Fuzz
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 
 
@@ -56,9 +56,9 @@ rangesDontOverlap ranges =
         |> (\bounds -> bounds |> Expect.equal (List.sort bounds))
 
 
-formattedText : Fuzzer (FormattedText Fuzz.Tag)
+formattedText : Fuzzer (FormattedText FormattedText.Fuzz.Tag)
 formattedText =
-    Fuzz.formattedText Fuzz.tag
+    FormattedText.Fuzz.formattedText FormattedText.Fuzz.tag
 
 
 {-| Whereas `Expect.all` allows you to run multiple assertions against a single piece of data,

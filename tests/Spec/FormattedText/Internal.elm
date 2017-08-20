@@ -1,4 +1,4 @@
-module FormattedText.InternalSpec exposing (overlapTests)
+module Spec.FormattedText.Internal exposing (overlapTests)
 
 import Expect exposing (Expectation)
 import FormattedText.Internal as Internal exposing (overlap)
