@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, indexes, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices
 
 -}
 
@@ -303,6 +303,12 @@ indexes part whole =
     String.indexes (text part) (text whole)
         -- We found all matching substrings, but they might have different formatting.
         |> List.filter (partAtIndex >> equal part)
+
+
+{-| -}
+indices : FormattedText markup -> FormattedText markup -> List Int
+indices =
+    indexes
 
 
 equal : FormattedText markup -> FormattedText markup -> Bool
