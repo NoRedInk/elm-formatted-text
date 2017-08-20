@@ -380,6 +380,20 @@ spec =
                     FormattedText.fromList chars
                         |> Expect.equal (String.fromList chars |> FormattedText.fromString)
             ]
+        , describe ".toUpper"
+            [ fuzz formattedText "works like String.toUpper" <|
+                \formatted ->
+                    FormattedText.toUpper formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.toUpper)
+            ]
+        , describe ".toLower"
+            [ fuzz formattedText "works like String.toLower" <|
+                \formatted ->
+                    FormattedText.toLower formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.toLower)
+            ]
         ]
 
 

@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList, toUpper, toLower
 
 -}
 
@@ -378,6 +378,22 @@ toList formatted =
 fromList : List Char -> FormattedText markup
 fromList chars =
     fromString (String.fromList chars)
+
+
+{-| -}
+toUpper : FormattedText markup -> FormattedText markup
+toUpper formatted =
+    formattedText
+        (String.toUpper <| text formatted)
+        (ranges formatted)
+
+
+{-| -}
+toLower : FormattedText markup -> FormattedText markup
+toLower formatted =
+    formattedText
+        (String.toLower <| text formatted)
+        (ranges formatted)
 
 
 {-| Helper type for the chunks function.
