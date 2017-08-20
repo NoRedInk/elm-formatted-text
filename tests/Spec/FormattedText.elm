@@ -4,7 +4,7 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (customFormattedText, formattedText, tag)
+import FormattedText.Fuzz exposing (customFormattedText, formattedText, markup)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
@@ -256,8 +256,8 @@ spec =
                     FormattedText.indexes (FormattedText.fromString part) (FormattedText.fromString whole)
                         |> Expect.equal (String.indexes part whole)
             , fuzz2
-                (customFormattedText repetitiveStringElement tag)
-                (customFormattedText repetitiveString tag)
+                (customFormattedText repetitiveStringElement markup)
+                (customFormattedText repetitiveString markup)
                 "only shows indexes when formats match too"
               <|
                 \part whole ->

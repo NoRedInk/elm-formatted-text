@@ -1,10 +1,21 @@
-module FormattedText.Fuzz exposing (Tag(..), customFormattedText, formattedText, tag)
+module FormattedText.Fuzz exposing (Markup(..), customFormattedText, formattedText, markup)
+
+{-| Fuzzers of FormattedText types
+
+This can be used to test code that makes use of FormattedText.
+
+-}
 
 import FormattedText exposing (FormattedText, Range)
 import Fuzz exposing (..)
 
 
-type Tag
+{-| A arbitrary Markup type used by the formattedText fuzzer.
+
+If this isn't the right markup type for you, use `customFormattedText`.
+
+-}
+type Markup
     = Red
     | Blue
     | Green
@@ -12,29 +23,29 @@ type Tag
 
 {-| Fuzzer of FormattedText types.
 -}
-formattedText : Fuzzer (FormattedText Tag)
+formattedText : Fuzzer (FormattedText Markup)
 formattedText =
-    customFormattedText string tag
+    customFormattedText string markup
 
 
 {-| Customizable fuzzer of FormattedText types.
 
-You can use your own text and tag fuzzers or use the standard `string` fuzzer
-and the tag fuzzer provided by this module.
+You can use your own text and markup fuzzers or use the standard `string` fuzzer
+and the markup fuzzer provided by this module.
 
 -}
-customFormattedText : Fuzzer String -> Fuzzer tag -> Fuzzer (FormattedText tag)
-customFormattedText textFuzzer tagFuzzer =
-    map2 buildFormattedText textFuzzer (shortList (protoRange tagFuzzer))
+customFormattedText : Fuzzer String -> Fuzzer markup -> Fuzzer (FormattedText markup)
+customFormattedText textFuzzer markupFuzzer =
+    map2 buildFormattedText textFuzzer (shortList (protoRange markupFuzzer))
 
 
-{-| Fuzzer of FormattedText tags.
+{-| Fuzzer of FormattedText markups.
 
-Because any type can be used as a tag this is just a suggestion provided for the lazy developer ;).
+Because any type can be used as a markup this is just a suggestion provided for the lazy developer ;).
 
 -}
-tag : Fuzzer Tag
-tag =
+markup : Fuzzer Markup
+markup =
     oneOf [ constant Red, constant Blue, constant Green ]
 
 
@@ -45,18 +56,18 @@ This strategy will result on the same mix of partially and completely covering r
 regardless of the text length.
 
 -}
-protoRange : Fuzzer tag -> Fuzzer (String -> Range tag)
-protoRange tagFuzzer =
+protoRange : Fuzzer markup -> Fuzzer (String -> Range markup)
+protoRange markupFuzzer =
     let
-        coverCompletely : tag -> String -> Range tag
-        coverCompletely tag text =
-            { tag = tag
+        coverCompletely : markup -> String -> Range markup
+        coverCompletely markup text =
+            { tag = markup
             , start = 0
             , end = String.length text
             }
 
-        coverPartially : tag -> Int -> Int -> String -> Range tag
-        coverPartially tag n m text =
+        coverPartially : markup -> Int -> Int -> String -> Range markup
+        coverPartially markup n m text =
             let
                 ln =
                     String.length text
@@ -67,7 +78,7 @@ protoRange tagFuzzer =
                 end =
                     n + safeMod m (ln - start)
             in
-            { tag = tag
+            { tag = markup
             , start = start
             , end = end
             }
@@ -80,12 +91,12 @@ protoRange tagFuzzer =
                 n % m
     in
     frequency
-        [ ( 1, map coverCompletely tagFuzzer )
-        , ( 5, map3 coverPartially tagFuzzer int int )
+        [ ( 1, map coverCompletely markupFuzzer )
+        , ( 5, map3 coverPartially markupFuzzer int int )
         ]
 
 
-buildFormattedText : String -> List (String -> Range tag) -> FormattedText tag
+buildFormattedText : String -> List (String -> Range markup) -> FormattedText markup
 buildFormattedText text protoRanges =
     let
         ranges =

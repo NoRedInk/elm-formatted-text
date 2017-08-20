@@ -2,7 +2,7 @@ module Spec.FormattedText.Regex exposing (spec)
 
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (Tag, formattedText)
+import FormattedText.Fuzz exposing (Markup, formattedText)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
@@ -120,12 +120,12 @@ spec =
                                     else
                                         howMany
 
-                        matches : List (FormattedText Tag)
+                        matches : List (FormattedText Markup)
                         matches =
                             FormattedText.Regex.find fixedHowMany regex formatted
                                 |> List.map .match
 
-                        nonMatches : List (FormattedText Tag)
+                        nonMatches : List (FormattedText Markup)
                         nonMatches =
                             FormattedText.Regex.split fixedHowMany regex formatted
                     in
