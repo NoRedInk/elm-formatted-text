@@ -6,7 +6,7 @@ import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
 import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, formattedText, markup)
 import FormattedText.Regex
-import Fuzz exposing (Fuzzer, int, intRange, list, string)
+import Fuzz exposing (Fuzzer, char, int, intRange, list, string)
 import Regex
 import Test exposing (..)
 import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, just, rangesDontOverlap, shortList)
@@ -355,6 +355,30 @@ spec =
                     else
                         FormattedText.endsWith modifiedStart whole
                             |> Expect.false "Expected endsWith to return false"
+            ]
+        , describe ".toInt"
+            [ fuzz formattedText "works like String.toInt" <|
+                \formatted ->
+                    FormattedText.toInt formatted
+                        |> Expect.equal (FormattedText.text formatted |> String.toInt)
+            ]
+        , describe ".toFloat"
+            [ fuzz formattedText "works like String.toFloat" <|
+                \formatted ->
+                    FormattedText.toFloat formatted
+                        |> Expect.equal (FormattedText.text formatted |> String.toFloat)
+            ]
+        , describe ".toList"
+            [ fuzz formattedText "works like String.toList" <|
+                \formatted ->
+                    FormattedText.toList formatted
+                        |> Expect.equal (FormattedText.text formatted |> String.toList)
+            ]
+        , describe ".fromList"
+            [ fuzz (list char) "works like String.fromList" <|
+                \chars ->
+                    FormattedText.fromList chars
+                        |> Expect.equal (String.fromList chars |> FormattedText.fromString)
             ]
         ]
 

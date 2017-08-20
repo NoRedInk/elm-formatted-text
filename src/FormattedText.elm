@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList
 
 -}
 
@@ -354,6 +354,30 @@ equal formattedA formattedB =
             toString ( start, end, tag )
     in
     textEqual && rangesEqual
+
+
+{-| -}
+toInt : FormattedText markup -> Result String Int
+toInt formatted =
+    String.toInt (text formatted)
+
+
+{-| -}
+toFloat : FormattedText markup -> Result String Float
+toFloat formatted =
+    String.toFloat (text formatted)
+
+
+{-| -}
+toList : FormattedText markup -> List Char
+toList formatted =
+    String.toList (text formatted)
+
+
+{-| -}
+fromList : List Char -> FormattedText markup
+fromList chars =
+    fromString (String.fromList chars)
 
 
 {-| Helper type for the chunks function.
