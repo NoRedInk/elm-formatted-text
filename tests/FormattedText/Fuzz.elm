@@ -20,4 +20,14 @@ range tagFuzzer =
 
 formattedText : Fuzzer tag -> Fuzzer (FormattedText tag)
 formattedText tagFuzzer =
-    map2 FormattedText.formattedText string (list (range tagFuzzer))
+    map2 FormattedText.formattedText string (shortList (range tagFuzzer))
+
+
+shortList : Fuzzer a -> Fuzzer (List a)
+shortList fuzzer =
+    Fuzz.oneOf
+        [ Fuzz.constant []
+        , Fuzz.map (\a -> [ a ]) fuzzer
+        , Fuzz.map2 (\a b -> [ a, b ]) fuzzer fuzzer
+        , Fuzz.map3 (\a b c -> [ a, b, c ]) fuzzer fuzzer fuzzer
+        ]
