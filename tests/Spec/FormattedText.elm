@@ -17,7 +17,7 @@ spec =
         [ fuzz formattedText "Formatted text ranges with equal markup never overlap" <|
             \formatted ->
                 FormattedText.ranges formatted
-                    |> Dict.Extra.groupBy .tag
+                    |> Dict.Extra.groupBy (.tag >> toString)
                     |> Dict.values
                     |> assertForAll rangesDontOverlap
         , test "Ranges that do not overlap are not merged into one" <|

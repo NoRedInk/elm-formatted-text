@@ -6,7 +6,7 @@ import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
 import Test exposing (..)
-import Util exposing (assertForAll, equalFormattedTexts, formattedText)
+import Util exposing (Tag, assertForAll, equalFormattedTexts, formattedText)
 
 
 spec : Test
@@ -119,12 +119,12 @@ spec =
                                     else
                                         howMany
 
-                        matches : List (FormattedText Int)
+                        matches : List (FormattedText Tag)
                         matches =
                             FormattedText.Regex.find fixedHowMany regex formatted
                                 |> List.map .match
 
-                        nonMatches : List (FormattedText Int)
+                        nonMatches : List (FormattedText Tag)
                         nonMatches =
                             FormattedText.Regex.split fixedHowMany regex formatted
                     in

@@ -14,6 +14,10 @@ import FormattedText.Fuzz
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 
 
+type alias Tag =
+    FormattedText.Fuzz.Tag
+
+
 just : (a -> Expectation) -> (Maybe a -> Expectation)
 just expectation maybe =
     case maybe of

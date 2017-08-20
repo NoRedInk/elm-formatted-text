@@ -4,13 +4,15 @@ import FormattedText exposing (FormattedText, Range)
 import Fuzz exposing (..)
 
 
-type alias Tag =
-    Int
+type Tag
+    = Red
+    | Blue
+    | Green
 
 
 tag : Fuzzer Tag
 tag =
-    intRange 0 3
+    oneOf [ constant Red, constant Blue, constant Green ]
 
 
 range : Fuzzer tag -> Fuzzer (Range tag)
