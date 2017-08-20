@@ -1,8 +1,8 @@
-module FormattedText.Regex exposing (Match, find, replace, split)
+module FormattedText.Regex exposing (Match, contains, find, replace, split)
 
 {-| Regex operations for FormattedText
 
-@docs Match, find, replace, split
+@docs Match, contains, find, replace, split
 
 -}
 
@@ -103,3 +103,9 @@ splitAround { match, index } formatted =
     ( left index formatted
     , dropLeft (index + length match) formatted
     )
+
+
+{-| -}
+contains : Regex -> FormattedText markup -> Bool
+contains regex formatted =
+    Regex.contains regex (text formatted)

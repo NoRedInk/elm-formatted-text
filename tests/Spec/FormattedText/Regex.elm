@@ -132,6 +132,17 @@ spec =
                         |> FormattedText.concat
                         |> equalFormattedTexts formatted
             ]
+        , describe ".contains"
+            [ fuzz formattedText "works the same as Regex.contains" <|
+                \formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+                    in
+                    FormattedText.Regex.contains regex formatted
+                        |> Expect.equal (FormattedText.text formatted |> Regex.contains regex)
+            ]
         ]
 
 
