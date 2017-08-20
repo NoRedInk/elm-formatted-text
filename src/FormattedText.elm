@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Match, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, find, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, replace, reverse, right, slice, split, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -17,15 +17,10 @@ module FormattedText exposing (FormattedText, Match, Range, addRange, append, ch
 
 @docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines
 
-
-## Regex equivalent operations
-
-@docs Match, find, replace
-
 -}
 
 import FormattedText.Internal as Internal
-import Regex exposing (Regex)
+import FormattedText.Shared as Shared
 
 
 {-| Text with formatting.
@@ -81,55 +76,20 @@ addRange =
 
 {-| -}
 append : FormattedText markup -> FormattedText markup -> FormattedText markup
-append formattedA formattedB =
-    let
-        textA : String
-        textA =
-            Internal.text formattedA
-
-        textB : String
-        textB =
-            Internal.text formattedB
-
-        rangesA : List (Range markup)
-        rangesA =
-            Internal.ranges formattedA
-
-        rangesB : List (Range markup)
-        rangesB =
-            Internal.ranges formattedB
-
-        shiftLength : Int
-        shiftLength =
-            String.length textA
-
-        combinedRanges : List (Range markup)
-        combinedRanges =
-            rangesA
-                ++ List.map (shift shiftLength) rangesB
-    in
-    Internal.fromString (textA ++ textB)
-        |> (\formatted -> List.foldl Internal.addRange formatted combinedRanges)
-
-
-shift : Int -> Range markup -> Range markup
-shift amount range =
-    { range
-        | start = range.start + amount
-        , end = range.end + amount
-    }
+append =
+    Shared.append
 
 
 {-| -}
 empty : FormattedText markup
 empty =
-    Internal.fromString ""
+    Shared.empty
 
 
 {-| -}
 concat : List (FormattedText markup) -> FormattedText markup
-concat xs =
-    List.foldr append empty xs
+concat =
+    Shared.concat
 
 
 {-| -}
@@ -188,7 +148,7 @@ uncons formatted =
                 (\rest ->
                     formattedText
                         rest
-                        (List.map (shift -1) (ranges formatted))
+                        (List.map (Shared.shift -1) (ranges formatted))
                 )
             )
 
@@ -248,62 +208,32 @@ join joiner parts =
 
 {-| -}
 left : Int -> FormattedText markup -> FormattedText markup
-left n formatted =
-    formattedText
-        (text formatted |> String.left n)
-        (ranges formatted)
+left =
+    Shared.left
 
 
 {-| -}
 right : Int -> FormattedText markup -> FormattedText markup
-right n formatted =
-    let
-        shiftLength =
-            max 0 n - length formatted
-    in
-    formattedText
-        (text formatted |> String.right n)
-        (ranges formatted |> List.map (shift shiftLength))
+right =
+    Shared.right
 
 
 {-| -}
 dropLeft : Int -> FormattedText markup -> FormattedText markup
-dropLeft n formatted =
-    right (length formatted - n) formatted
+dropLeft =
+    Shared.dropLeft
 
 
 {-| -}
 dropRight : Int -> FormattedText markup -> FormattedText markup
-dropRight n formatted =
-    left (length formatted - n) formatted
+dropRight =
+    Shared.dropRight
 
 
 {-| -}
 slice : Int -> Int -> FormattedText markup -> FormattedText markup
-slice start end formatted =
-    let
-        ln : Int
-        ln =
-            length formatted
-
-        fixBound : Int -> Int
-        fixBound n =
-            if n < 0 then
-                ln + n
-            else
-                n
-
-        leftBound : Int
-        leftBound =
-            fixBound start
-
-        rightBound : Int
-        rightBound =
-            ln - fixBound end
-    in
-    formatted
-        |> dropRight rightBound
-        |> dropLeft leftBound
+slice =
+    Shared.slice
 
 
 {-| -}
@@ -314,8 +244,8 @@ lines formatted =
 
 {-| -}
 formattedText : String -> List (Range markup) -> FormattedText markup
-formattedText text ranges =
-    List.foldr Internal.addRange (Internal.fromString text) ranges
+formattedText =
+    Shared.formattedText
 
 
 {-| Apply some formatting to the entirety of a piece of formatted text.
@@ -452,71 +382,3 @@ unchunk chunks =
     chunks
         |> List.map formatChunk
         |> concat
-
-
-{-| A match in a piece of FormattedText
-
-This is the equivalent for FormattedTexts of `Regex.Match` for Strings.
-Unfortunately submatches cannot currently be supported when matching formatted texts.
-
--}
-type alias Match markup =
-    { match : FormattedText markup
-    , index : Int
-    , number : Int
-    }
-
-
-{-| -}
-find : Regex.HowMany -> Regex -> FormattedText markup -> List (Match markup)
-find howMany regex formatted =
-    text formatted
-        |> Regex.find howMany regex
-        |> List.map (fromStringMatch formatted)
-
-
-fromStringMatch : FormattedText markup -> Regex.Match -> Match markup
-fromStringMatch fullFormatted { match, index, number } =
-    { match = slice index (index + String.length match) fullFormatted
-    , index = index
-    , number = number
-    }
-
-
-{-| -}
-replace :
-    Regex.HowMany
-    -> Regex
-    -> (Match markup -> FormattedText markup)
-    -> FormattedText markup
-    -> FormattedText markup
-replace howMany regex replacer formatted =
-    let
-        replaceMatch : Match markup -> FormattedText markup -> FormattedText markup
-        replaceMatch match formatted =
-            replaceSlice
-                match.index
-                (match.index + length match.match)
-                (replacer match)
-                formatted
-    in
-    find howMany regex formatted
-        -- It's important to fold from the right here.
-        -- Each replacement potentially changes the length of the text,
-        -- affecting indexes of other matches to the right.
-        -- By starting from the right most match and working back this won't become a problem.
-        |> List.foldr replaceMatch formatted
-
-
-replaceSlice : Int -> Int -> FormattedText markup -> FormattedText markup -> FormattedText markup
-replaceSlice start end part whole =
-    let
-        first : FormattedText markup
-        first =
-            left start whole
-
-        last : FormattedText markup
-        last =
-            dropLeft end whole
-    in
-    concat [ first, part, last ]
