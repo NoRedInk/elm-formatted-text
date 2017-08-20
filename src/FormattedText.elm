@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Match, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, find, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -15,12 +15,17 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines
 
-# @docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines
+
+## Regex equivalent operations
+
+@docs Match, find
 
 -}
 
 import FormattedText.Internal as Internal
+import Regex exposing (Regex)
 
 
 {-| Text with formatting.
@@ -447,3 +452,32 @@ unchunk chunks =
     chunks
         |> List.map formatChunk
         |> concat
+
+
+{-| A match in a piece of FormattedText
+
+This is the equivalent for FormattedTexts of `Regex.Match` for Strings.
+Unfortunately submatches cannot currently be supported when matching formatted texts.
+
+-}
+type alias Match markup =
+    { match : FormattedText markup
+    , index : Int
+    , number : Int
+    }
+
+
+{-| -}
+find : Regex.HowMany -> Regex -> FormattedText markup -> List (Match markup)
+find howMany regex formatted =
+    text formatted
+        |> Regex.find howMany regex
+        |> List.map (fromStringMatch formatted)
+
+
+fromStringMatch : FormattedText markup -> Regex.Match -> Match markup
+fromStringMatch fullFormatted { match, index, number } =
+    { match = slice index (index + String.length match) fullFormatted
+    , index = index
+    , number = number
+    }

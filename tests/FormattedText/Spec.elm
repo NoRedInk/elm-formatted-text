@@ -8,6 +8,7 @@ import Expect exposing (Expectation)
 import FormattedText as FormattedText exposing (FormattedText, Range)
 import FormattedText.Fuzz as Fuzz
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
+import Regex
 import Test exposing (..)
 
 
@@ -208,6 +209,51 @@ spec =
                         |> List.map FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.lines)
             ]
+        , describe ".find"
+            [ fuzz2 howMany formattedText "works the same way as Regex.find" <|
+                \howMany formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+
+                        fromStringMatch : Regex.Match -> ( String, Int, Int )
+                        fromStringMatch { match, index, number } =
+                            ( match, index, number )
+
+                        fromFormattedMatch : FormattedText.Match markup -> ( String, Int, Int )
+                        fromFormattedMatch { match, index, number } =
+                            ( FormattedText.text match, index, number )
+                    in
+                    FormattedText.find howMany regex formatted
+                        |> List.map fromFormattedMatch
+                        |> Expect.equal
+                            (FormattedText.text formatted
+                                |> Regex.find howMany regex
+                                |> List.map fromStringMatch
+                            )
+            , fuzz2 howMany formattedText "matches are sub-texts of full text" <|
+                \howMany formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+                    in
+                    FormattedText.find howMany regex formatted
+                        |> assertForAll
+                            (\{ match, index } ->
+                                FormattedText.slice index (index + FormattedText.length match) formatted
+                                    |> Expect.equal match
+                            )
+            ]
+        ]
+
+
+howMany : Fuzzer Regex.HowMany
+howMany =
+    Fuzz.oneOf
+        [ Fuzz.constant Regex.All
+        , Fuzz.map Regex.AtMost Fuzz.int
         ]
 
 
