@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Match, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, find, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, text, unchunk, uncons)
+module FormattedText exposing (FormattedText, Match, Range, addRange, append, chunks, concat, cons, dropLeft, dropRight, empty, find, formatAll, formattedText, fromChar, fromString, isEmpty, join, left, length, lines, ranges, repeat, replace, reverse, right, slice, split, text, unchunk, uncons)
 
 {-| A type representing text with formatting.
 
@@ -20,7 +20,7 @@ module FormattedText exposing (FormattedText, Match, Range, addRange, append, ch
 
 ## Regex equivalent operations
 
-@docs Match, find
+@docs Match, find, replace
 
 -}
 
@@ -481,3 +481,42 @@ fromStringMatch fullFormatted { match, index, number } =
     , index = index
     , number = number
     }
+
+
+{-| -}
+replace :
+    Regex.HowMany
+    -> Regex
+    -> (Match markup -> FormattedText markup)
+    -> FormattedText markup
+    -> FormattedText markup
+replace howMany regex replacer formatted =
+    let
+        replaceMatch : Match markup -> FormattedText markup -> FormattedText markup
+        replaceMatch match formatted =
+            replaceSlice
+                match.index
+                (match.index + length match.match)
+                (replacer match)
+                formatted
+    in
+    find howMany regex formatted
+        -- It's important to fold from the right here.
+        -- Each replacement potentially changes the length of the text,
+        -- affecting indexes of other matches to the right.
+        -- By starting from the right most match and working back this won't become a problem.
+        |> List.foldr replaceMatch formatted
+
+
+replaceSlice : Int -> Int -> FormattedText markup -> FormattedText markup -> FormattedText markup
+replaceSlice start end part whole =
+    let
+        first : FormattedText markup
+        first =
+            left start whole
+
+        last : FormattedText markup
+        last =
+            dropLeft end whole
+    in
+    concat [ first, part, last ]

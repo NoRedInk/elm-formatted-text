@@ -246,6 +246,63 @@ spec =
                                     |> Expect.equal match
                             )
             ]
+        , describe ".replace"
+            [ fuzz3 howMany formattedText replacer "works the same as Regex.replace" <|
+                \howMany formatted ( _, replacer ) ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+
+                        foo : String -> String
+                        foo =
+                            replacer
+
+                        formattedReplacer : FormattedText.Match markup -> FormattedText markup
+                        formattedReplacer { match } =
+                            match
+                                |> FormattedText.text
+                                |> replacer
+                                |> FormattedText.fromString
+                    in
+                    FormattedText.replace howMany regex formattedReplacer formatted
+                        |> FormattedText.text
+                        |> Expect.equal
+                            (Regex.replace
+                                howMany
+                                regex
+                                (.match >> replacer)
+                                (FormattedText.text formatted)
+                            )
+            , fuzz2 howMany formattedText "Replacing with identity gives back original result" <|
+                \howMany formatted ->
+                    let
+                        regex : Regex.Regex
+                        regex =
+                            Regex.regex "[a-z]+"
+                    in
+                    FormattedText.replace howMany regex (.match >> identity) formatted
+                        |> equalFormattedTexts formatted
+            ]
+        ]
+
+
+{-| A fuzzed function in a test failure will be displayed as "<function>".
+That's not useful, so we add a string representation of the function for debugging.
+-}
+replacer : Fuzzer ( String, String -> String )
+replacer =
+    Fuzz.oneOf
+        [ Fuzz.constant ( "identity", identity )
+
+        -- Keep fragment length the same.
+        , Fuzz.constant ( "String.toUpper", String.toUpper )
+
+        -- Make fragment shorter.
+        , Fuzz.constant ( "String.left 2", String.left 2 )
+
+        -- Make fragment longer.
+        , Fuzz.constant ( "(++) \"!!\"", (++) "!!" )
         ]
 
 
