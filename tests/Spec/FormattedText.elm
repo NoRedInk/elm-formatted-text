@@ -235,4 +235,18 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.trim)
             ]
+        , describe ".trimLeft"
+            [ fuzz formattedText "works the same as String.trimLeft" <|
+                \formatted ->
+                    FormattedText.trimLeft formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.trimLeft)
+            ]
+        , describe ".trimRight"
+            [ fuzz formattedText "works the same as String.trimRight" <|
+                \formatted ->
+                    FormattedText.trimRight formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.trimRight)
+            ]
         ]
