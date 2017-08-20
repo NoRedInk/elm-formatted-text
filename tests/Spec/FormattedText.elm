@@ -325,6 +325,37 @@ spec =
                         FormattedText.startsWith modifiedStart whole
                             |> Expect.false "Expected startsWith to return false"
             ]
+        , describe ".endsWith"
+            [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.endsWith" <|
+                \end whole ->
+                    FormattedText.endsWith (FormattedText.fromString end) (FormattedText.fromString whole)
+                        |> Expect.equal (String.endsWith end whole)
+            , fuzz2 formattedText formattedText "returns true if the markup matches" <|
+                \start end ->
+                    let
+                        whole : FormattedText Markup
+                        whole =
+                            FormattedText.append start end
+                    in
+                    FormattedText.endsWith end whole
+                        |> Expect.true "Expected endsWith to return true"
+            , fuzz2 formattedText formattedText "returns false if markup does not match" <|
+                \start end ->
+                    let
+                        modifiedStart : FormattedText Markup
+                        modifiedStart =
+                            FormattedText.addRange { tag = Yellow, start = 0, end = 1 } end
+
+                        whole : FormattedText Markup
+                        whole =
+                            FormattedText.append start end
+                    in
+                    if FormattedText.isEmpty end then
+                        Expect.pass
+                    else
+                        FormattedText.endsWith modifiedStart whole
+                            |> Expect.false "Expected endsWith to return false"
+            ]
         ]
 
 

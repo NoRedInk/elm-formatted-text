@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, formatAll, formattedText, fromChar, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromString, indexes, indices, isEmpty, join, left, length, lines, ranges, repeat, reverse, right, slice, split, startsWith, text, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith
 
 -}
 
@@ -324,6 +324,12 @@ contains part whole =
 startsWith : FormattedText markup -> FormattedText markup -> Bool
 startsWith start whole =
     equal start (left (length start) whole)
+
+
+{-| -}
+endsWith : FormattedText markup -> FormattedText markup -> Bool
+endsWith end whole =
+    equal end (right (length end) whole)
 
 
 equal : FormattedText markup -> FormattedText markup -> Bool
