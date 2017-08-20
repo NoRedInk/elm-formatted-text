@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -15,7 +15,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String equivalent operations
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList, toUpper, toLower, padLeft, padRight
+@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList, toUpper, toLower, padLeft, padRight, pad
 
 -}
 
@@ -403,16 +403,8 @@ padLeft upTo char markups formatted =
         amount : Int
         amount =
             upTo - length formatted
-
-        paddingString : String
-        paddingString =
-            String.repeat amount (String.fromChar char)
-
-        padding : FormattedText markup
-        padding =
-            List.foldl formatAll (fromString paddingString) markups
     in
-    append padding formatted
+    append (createPadding amount char markups) formatted
 
 
 {-| -}
@@ -422,16 +414,43 @@ padRight upTo char markups formatted =
         amount : Int
         amount =
             upTo - length formatted
+    in
+    append formatted (createPadding amount char markups)
 
+
+{-| -}
+pad : Int -> Char -> List markup -> FormattedText markup -> FormattedText markup
+pad upTo char markups formatted =
+    let
+        ln : Int
+        ln =
+            length formatted
+
+        rightAmount : Int
+        rightAmount =
+            (upTo - ln)
+                // 2
+                |> max 0
+
+        leftAmount : Int
+        leftAmount =
+            (upTo - ln) - rightAmount
+    in
+    concat
+        [ createPadding leftAmount char markups
+        , formatted
+        , createPadding rightAmount char markups
+        ]
+
+
+createPadding : Int -> Char -> List markup -> FormattedText markup
+createPadding amount char markups =
+    let
         paddingString : String
         paddingString =
             String.repeat amount (String.fromChar char)
-
-        padding : FormattedText markup
-        padding =
-            List.foldl formatAll (fromString paddingString) markups
     in
-    append formatted padding
+    List.foldl formatAll (fromString paddingString) markups
 
 
 {-| Helper type for the chunks function.

@@ -360,7 +360,15 @@ spec =
             [ fuzz formattedText "works like String.toInt" <|
                 \formatted ->
                     FormattedText.toInt formatted
-                        |> Expect.equal (FormattedText.text formatted |> String.toInt)
+                        |> (\result ->
+                                -- Weirdly we can get 'Ok NaN' here, for instance for the string "+".
+                                -- We can't use isNaN, because elm-make will only allow use of that on floats.
+                                -- This result is expected to contain an Int.
+                                if toString result == "Ok NaN" then
+                                    Expect.pass
+                                else
+                                    result |> Expect.equal (FormattedText.text formatted |> String.toInt)
+                           )
             ]
         , describe ".toFloat"
             [ fuzz formattedText "works like String.toFloat" <|
@@ -439,6 +447,13 @@ spec =
                     FormattedText.padRight upTo char [ Yellow ] formatted
                         |> FormattedText.right paddingLength
                         |> equalFormattedTexts padding
+            ]
+        , describe ".pad"
+            [ fuzz3 char (intRange -10 1000) formattedText "works like String.pad" <|
+                \char upTo formatted ->
+                    FormattedText.pad upTo char [] formatted
+                        |> FormattedText.text
+                        |> Expect.equal (FormattedText.text formatted |> String.pad upTo char)
             ]
         ]
 
