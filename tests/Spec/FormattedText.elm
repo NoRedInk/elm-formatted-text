@@ -4,7 +4,7 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (formattedText)
+import FormattedText.Fuzz exposing (customFormattedText, formattedText, tag)
 import FormattedText.Regex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
@@ -255,6 +255,39 @@ spec =
                 \part whole ->
                     FormattedText.indexes (FormattedText.fromString part) (FormattedText.fromString whole)
                         |> Expect.equal (String.indexes part whole)
+            , fuzz2
+                (customFormattedText repetitiveStringElement tag)
+                (customFormattedText repetitiveString tag)
+                "only shows indexes when formats match too"
+              <|
+                \part whole ->
+                    let
+                        stringIndexes : List Int
+                        stringIndexes =
+                            String.indexes (FormattedText.text part) (FormattedText.text whole)
+
+                        formattedIndexes : List Int
+                        formattedIndexes =
+                            FormattedText.indexes part whole
+
+                        assertPartAt : Int -> Expectation
+                        assertPartAt index =
+                            FormattedText.slice index (index + FormattedText.length part) whole
+                                |> Expect.equal part
+
+                        assertPartNotAt : Int -> Expectation
+                        assertPartNotAt index =
+                            FormattedText.slice index (index + FormattedText.length part) whole
+                                |> Expect.notEqual part
+                    in
+                    stringIndexes
+                        |> assertForAll
+                            (\index ->
+                                if List.member index formattedIndexes then
+                                    assertPartAt index
+                                else
+                                    assertPartNotAt index
+                            )
             ]
         ]
 
