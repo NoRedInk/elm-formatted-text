@@ -249,4 +249,26 @@ spec =
                         |> FormattedText.text
                         |> Expect.equal (FormattedText.text formatted |> String.trimRight)
             ]
+        , describe ".indexes"
+            [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.indexes" <|
+                \part whole ->
+                    FormattedText.indexes (FormattedText.fromString part) (FormattedText.fromString whole)
+                        |> Expect.equal (String.indexes part whole)
+            ]
+        ]
+
+
+repetitiveString : Fuzzer String
+repetitiveString =
+    Fuzz.list repetitiveStringElement
+        |> Fuzz.map String.concat
+
+
+repetitiveStringElement : Fuzzer String
+repetitiveStringElement =
+    Fuzz.oneOf
+        [ Fuzz.constant "a"
+        , Fuzz.constant "bb"
+        , Fuzz.constant "ccc"
+        , string
         ]
