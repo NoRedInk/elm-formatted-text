@@ -1,4 +1,4 @@
-module Spec.FormattedText.Regex exposing (spec)
+module Spec.FormattedText.Regex exposing (..)
 
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
@@ -10,140 +10,150 @@ import Test exposing (..)
 import Util exposing (assertForAll, equalFormattedTexts)
 
 
-spec : Test
-spec =
-    describe "FormattedText.Regex"
-        [ describe ".find"
-            [ fuzz2 howMany formattedText "works the same way as Regex.find" <|
-                \howMany formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
+find : Test
+find =
+    describe ".find"
+        [ fuzz2 howMany formattedText "works the same way as Regex.find" <|
+            \howMany formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
 
-                        fromStringMatch : Regex.Match -> ( String, Int, Int )
-                        fromStringMatch { match, index, number } =
-                            ( match, index, number )
+                    fromStringMatch : Regex.Match -> ( String, Int, Int )
+                    fromStringMatch { match, index, number } =
+                        ( match, index, number )
 
-                        fromFormattedMatch : FTRegex.Match markup -> ( String, Int, Int )
-                        fromFormattedMatch { match, index, number } =
-                            ( FT.text match, index, number )
-                    in
-                    FTRegex.find howMany regex formatted
-                        |> List.map fromFormattedMatch
-                        |> Expect.equal
-                            (FT.text formatted
-                                |> Regex.find howMany regex
-                                |> List.map fromStringMatch
-                            )
-            , fuzz2 howMany formattedText "matches are sub-texts of full text" <|
-                \howMany formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
-                    in
-                    FTRegex.find howMany regex formatted
-                        |> assertForAll
-                            (\{ match, index } ->
-                                FT.slice index (index + FT.length match) formatted
-                                    |> Expect.equal match
-                            )
-            ]
-        , describe ".replace"
-            [ fuzz3 howMany formattedText replacer "works the same as Regex.replace" <|
-                \howMany formatted ( _, replacer ) ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
+                    fromFormattedMatch : FTRegex.Match markup -> ( String, Int, Int )
+                    fromFormattedMatch { match, index, number } =
+                        ( FT.text match, index, number )
+                in
+                FTRegex.find howMany regex formatted
+                    |> List.map fromFormattedMatch
+                    |> Expect.equal
+                        (FT.text formatted
+                            |> Regex.find howMany regex
+                            |> List.map fromStringMatch
+                        )
+        , fuzz2 howMany formattedText "matches are sub-texts of full text" <|
+            \howMany formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+                in
+                FTRegex.find howMany regex formatted
+                    |> assertForAll
+                        (\{ match, index } ->
+                            FT.slice index (index + FT.length match) formatted
+                                |> Expect.equal match
+                        )
+        ]
 
-                        foo : String -> String
-                        foo =
-                            replacer
 
-                        formattedReplacer : FTRegex.Match markup -> FormattedText markup
-                        formattedReplacer { match } =
-                            match
-                                |> FT.text
-                                |> replacer
-                                |> FT.fromString
-                    in
-                    FTRegex.replace howMany regex formattedReplacer formatted
-                        |> FT.text
-                        |> Expect.equal
-                            (Regex.replace
+replace : Test
+replace =
+    describe ".replace"
+        [ fuzz3 howMany formattedText replacer "works the same as Regex.replace" <|
+            \howMany formatted ( _, replacer ) ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+
+                    foo : String -> String
+                    foo =
+                        replacer
+
+                    formattedReplacer : FTRegex.Match markup -> FormattedText markup
+                    formattedReplacer { match } =
+                        match
+                            |> FT.text
+                            |> replacer
+                            |> FT.fromString
+                in
+                FTRegex.replace howMany regex formattedReplacer formatted
+                    |> FT.text
+                    |> Expect.equal
+                        (Regex.replace
+                            howMany
+                            regex
+                            (.match >> replacer)
+                            (FT.text formatted)
+                        )
+        , fuzz2 howMany formattedText "Replacing with identity gives back original result" <|
+            \howMany formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+                in
+                FTRegex.replace howMany regex (.match >> identity) formatted
+                    |> equalFormattedTexts formatted
+        ]
+
+
+split : Test
+split =
+    describe ".split"
+        [ fuzz2 howMany formattedText "works the same as Regex.split" <|
+            \howMany formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+                in
+                FTRegex.split howMany regex formatted
+                    |> List.map FT.text
+                    |> Expect.equal (FT.text formatted |> Regex.split howMany regex)
+        , fuzz2 howMany formattedText "results from .find and .split constructor original input" <|
+            \howMany formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+
+                    -- `Regex.split` treats negative `AtMost` values as `All`, `Regex.find` treats them as `AtMost 0.
+                    -- Because we want to implement the `split behaviour` using `find` we need to transform.
+                    fixedHowMany : Regex.HowMany
+                    fixedHowMany =
+                        case howMany of
+                            Regex.All ->
                                 howMany
-                                regex
-                                (.match >> replacer)
-                                (FT.text formatted)
-                            )
-            , fuzz2 howMany formattedText "Replacing with identity gives back original result" <|
-                \howMany formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
-                    in
-                    FTRegex.replace howMany regex (.match >> identity) formatted
-                        |> equalFormattedTexts formatted
-            ]
-        , describe ".split"
-            [ fuzz2 howMany formattedText "works the same as Regex.split" <|
-                \howMany formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
-                    in
-                    FTRegex.split howMany regex formatted
-                        |> List.map FT.text
-                        |> Expect.equal (FT.text formatted |> Regex.split howMany regex)
-            , fuzz2 howMany formattedText "results from .find and .split constructor original input" <|
-                \howMany formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
 
-                        -- `Regex.split` treats negative `AtMost` values as `All`, `Regex.find` treats them as `AtMost 0.
-                        -- Because we want to implement the `split behaviour` using `find` we need to transform.
-                        fixedHowMany : Regex.HowMany
-                        fixedHowMany =
-                            case howMany of
-                                Regex.All ->
+                            Regex.AtMost n ->
+                                if n < 0 then
+                                    Regex.All
+                                else
                                     howMany
 
-                                Regex.AtMost n ->
-                                    if n < 0 then
-                                        Regex.All
-                                    else
-                                        howMany
+                    matches : List (FormattedText Markup)
+                    matches =
+                        FTRegex.find fixedHowMany regex formatted
+                            |> List.map .match
 
-                        matches : List (FormattedText Markup)
-                        matches =
-                            FTRegex.find fixedHowMany regex formatted
-                                |> List.map .match
+                    nonMatches : List (FormattedText Markup)
+                    nonMatches =
+                        FTRegex.split fixedHowMany regex formatted
+                in
+                interweave nonMatches matches
+                    |> FT.concat
+                    |> equalFormattedTexts formatted
+        ]
 
-                        nonMatches : List (FormattedText Markup)
-                        nonMatches =
-                            FTRegex.split fixedHowMany regex formatted
-                    in
-                    interweave nonMatches matches
-                        |> FT.concat
-                        |> equalFormattedTexts formatted
-            ]
-        , describe ".contains"
-            [ fuzz formattedText "works the same as Regex.contains" <|
-                \formatted ->
-                    let
-                        regex : Regex.Regex
-                        regex =
-                            Regex.regex "[a-z]+"
-                    in
-                    FTRegex.contains regex formatted
-                        |> Expect.equal (FT.text formatted |> Regex.contains regex)
-            ]
+
+contains : Test
+contains =
+    describe ".contains"
+        [ fuzz formattedText "works the same as Regex.contains" <|
+            \formatted ->
+                let
+                    regex : Regex.Regex
+                    regex =
+                        Regex.regex "[a-z]+"
+                in
+                FTRegex.contains regex formatted
+                    |> Expect.equal (FT.text formatted |> Regex.contains regex)
         ]
 
 
