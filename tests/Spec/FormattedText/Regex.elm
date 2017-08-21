@@ -1,9 +1,9 @@
 module Spec.FormattedText.Regex exposing (spec)
 
 import Expect exposing (Expectation)
-import FormattedText exposing (FormattedText, Range)
+import FormattedText as FT exposing (FormattedText, Range)
 import FormattedText.Fuzz exposing (Markup, formattedText)
-import FormattedText.Regex
+import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
 import Test exposing (..)
@@ -25,14 +25,14 @@ spec =
                         fromStringMatch { match, index, number } =
                             ( match, index, number )
 
-                        fromFormattedMatch : FormattedText.Regex.Match markup -> ( String, Int, Int )
+                        fromFormattedMatch : FTRegex.Match markup -> ( String, Int, Int )
                         fromFormattedMatch { match, index, number } =
-                            ( FormattedText.text match, index, number )
+                            ( FT.text match, index, number )
                     in
-                    FormattedText.Regex.find howMany regex formatted
+                    FTRegex.find howMany regex formatted
                         |> List.map fromFormattedMatch
                         |> Expect.equal
-                            (FormattedText.text formatted
+                            (FT.text formatted
                                 |> Regex.find howMany regex
                                 |> List.map fromStringMatch
                             )
@@ -43,10 +43,10 @@ spec =
                         regex =
                             Regex.regex "[a-z]+"
                     in
-                    FormattedText.Regex.find howMany regex formatted
+                    FTRegex.find howMany regex formatted
                         |> assertForAll
                             (\{ match, index } ->
-                                FormattedText.slice index (index + FormattedText.length match) formatted
+                                FT.slice index (index + FT.length match) formatted
                                     |> Expect.equal match
                             )
             ]
@@ -62,21 +62,21 @@ spec =
                         foo =
                             replacer
 
-                        formattedReplacer : FormattedText.Regex.Match markup -> FormattedText markup
+                        formattedReplacer : FTRegex.Match markup -> FormattedText markup
                         formattedReplacer { match } =
                             match
-                                |> FormattedText.text
+                                |> FT.text
                                 |> replacer
-                                |> FormattedText.fromString
+                                |> FT.fromString
                     in
-                    FormattedText.Regex.replace howMany regex formattedReplacer formatted
-                        |> FormattedText.text
+                    FTRegex.replace howMany regex formattedReplacer formatted
+                        |> FT.text
                         |> Expect.equal
                             (Regex.replace
                                 howMany
                                 regex
                                 (.match >> replacer)
-                                (FormattedText.text formatted)
+                                (FT.text formatted)
                             )
             , fuzz2 howMany formattedText "Replacing with identity gives back original result" <|
                 \howMany formatted ->
@@ -85,7 +85,7 @@ spec =
                         regex =
                             Regex.regex "[a-z]+"
                     in
-                    FormattedText.Regex.replace howMany regex (.match >> identity) formatted
+                    FTRegex.replace howMany regex (.match >> identity) formatted
                         |> equalFormattedTexts formatted
             ]
         , describe ".split"
@@ -96,9 +96,9 @@ spec =
                         regex =
                             Regex.regex "[a-z]+"
                     in
-                    FormattedText.Regex.split howMany regex formatted
-                        |> List.map FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> Regex.split howMany regex)
+                    FTRegex.split howMany regex formatted
+                        |> List.map FT.text
+                        |> Expect.equal (FT.text formatted |> Regex.split howMany regex)
             , fuzz2 howMany formattedText "results from .find and .split constructor original input" <|
                 \howMany formatted ->
                     let
@@ -122,15 +122,15 @@ spec =
 
                         matches : List (FormattedText Markup)
                         matches =
-                            FormattedText.Regex.find fixedHowMany regex formatted
+                            FTRegex.find fixedHowMany regex formatted
                                 |> List.map .match
 
                         nonMatches : List (FormattedText Markup)
                         nonMatches =
-                            FormattedText.Regex.split fixedHowMany regex formatted
+                            FTRegex.split fixedHowMany regex formatted
                     in
                     interweave nonMatches matches
-                        |> FormattedText.concat
+                        |> FT.concat
                         |> equalFormattedTexts formatted
             ]
         , describe ".contains"
@@ -141,8 +141,8 @@ spec =
                         regex =
                             Regex.regex "[a-z]+"
                     in
-                    FormattedText.Regex.contains regex formatted
-                        |> Expect.equal (FormattedText.text formatted |> Regex.contains regex)
+                    FTRegex.contains regex formatted
+                        |> Expect.equal (FT.text formatted |> Regex.contains regex)
             ]
         ]
 

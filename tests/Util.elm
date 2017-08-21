@@ -9,7 +9,7 @@ Some of these methods might fit nicely into libraries.
 import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
-import FormattedText exposing (FormattedText, Range)
+import FormattedText as FT exposing (FormattedText, Range)
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 
 
@@ -27,8 +27,8 @@ equalFormattedTexts : EqualCheck (FormattedText markup)
 equalFormattedTexts formattedA formattedB =
     formattedB
         |> Expect.all
-            [ FormattedText.ranges >> equalRanges (FormattedText.ranges formattedA)
-            , FormattedText.text >> Expect.equal (FormattedText.text formattedA)
+            [ FT.ranges >> equalRanges (FT.ranges formattedA)
+            , FT.text >> Expect.equal (FT.text formattedA)
             ]
 
 

@@ -3,9 +3,9 @@ module Spec.FormattedText exposing (spec)
 import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
-import FormattedText exposing (FormattedText, Range)
+import FormattedText as FT exposing (FormattedText, Range)
 import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, formattedText, markup)
-import FormattedText.Regex
+import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, char, int, intRange, list, string)
 import Regex
 import Test exposing (..)
@@ -17,7 +17,7 @@ spec =
     describe "FormattedText"
         [ fuzz formattedText "Formatted text ranges with equal markup never overlap" <|
             \formatted ->
-                FormattedText.ranges formatted
+                FT.ranges formatted
                     |> Dict.Extra.groupBy (.tag >> toString)
                     |> Dict.values
                     |> assertForAll rangesDontOverlap
@@ -30,76 +30,76 @@ spec =
                     ranges =
                         [ { tag = "a", start = 0, end = 4 }, { tag = "a", start = 6, end = 8 } ]
                 in
-                FormattedText.formattedText text ranges
-                    |> FormattedText.ranges
+                FT.formattedText text ranges
+                    |> FT.ranges
                     |> equalRanges ranges
         , fuzz2 string string ".append" <|
             \a b ->
-                FormattedText.append (FormattedText.fromString a) (FormattedText.fromString b)
-                    |> equalFormattedTexts (FormattedText.fromString <| a ++ b)
+                FT.append (FT.fromString a) (FT.fromString b)
+                    |> equalFormattedTexts (FT.fromString <| a ++ b)
         , fuzz (list string) ".concat" <|
             \xs ->
-                List.map FormattedText.fromString xs
-                    |> FormattedText.concat
-                    |> equalFormattedTexts (FormattedText.fromString <| String.concat xs)
+                List.map FT.fromString xs
+                    |> FT.concat
+                    |> equalFormattedTexts (FT.fromString <| String.concat xs)
         , fuzz string "fromString and text are duals" <|
             \text ->
-                FormattedText.fromString text
-                    |> FormattedText.text
+                FT.fromString text
+                    |> FT.text
                     |> Expect.equal text
         , test ".chunks" <|
             \_ ->
-                FormattedText.formattedText
+                FT.formattedText
                     "foo bar baz"
                     [ { tag = "a", start = 0, end = 3 }, { tag = "b", start = 8, end = 11 } ]
-                    |> FormattedText.chunks (,)
+                    |> FT.chunks (,)
                     |> Expect.equal [ ( "foo", [ "a" ] ), ( " bar ", [] ), ( "baz", [ "b" ] ) ]
         , fuzz formattedText "chunks and unchunk are duals" <|
             \formatted ->
                 formatted
-                    |> FormattedText.chunks (,)
-                    |> FormattedText.unchunk
+                    |> FT.chunks (,)
+                    |> FT.unchunk
                     |> equalFormattedTexts formatted
         , describe ".reverse"
             [ fuzz formattedText "reversing twice is equivalent to doing nothing" <|
                 \formatted ->
                     formatted
-                        |> FormattedText.reverse
-                        |> FormattedText.reverse
+                        |> FT.reverse
+                        |> FT.reverse
                         |> equalFormattedTexts formatted
             , fuzz formattedText "works the same as String.reverse" <|
                 \formatted ->
                     formatted
-                        |> FormattedText.reverse
-                        |> FormattedText.text
-                        |> Expect.equal (formatted |> FormattedText.text |> String.reverse)
+                        |> FT.reverse
+                        |> FT.text
+                        |> Expect.equal (formatted |> FT.text |> String.reverse)
             ]
         , fuzz2 formattedText (intRange 0 5) ".repeat" <|
             \formatted n ->
                 formatted
-                    |> FormattedText.repeat n
-                    |> FormattedText.text
-                    |> Expect.equal (formatted |> FormattedText.text |> String.repeat n)
+                    |> FT.repeat n
+                    |> FT.text
+                    |> Expect.equal (formatted |> FT.text |> String.repeat n)
         , describe ".cons"
             [ fuzz formattedText "works the same as String.cons" <|
                 \formatted ->
                     formatted
-                        |> FormattedText.cons 'a'
-                        |> FormattedText.text
-                        |> Expect.equal (formatted |> FormattedText.text |> String.cons 'a')
+                        |> FT.cons 'a'
+                        |> FT.text
+                        |> Expect.equal (formatted |> FT.text |> String.cons 'a')
             ]
         , describe ".uncons"
             [ fuzz formattedText "works the same as String.uncons" <|
                 \formatted ->
                     formatted
-                        |> FormattedText.uncons
-                        |> Maybe.map (Tuple.mapSecond FormattedText.text)
-                        |> Expect.equal (formatted |> FormattedText.text |> String.uncons)
+                        |> FT.uncons
+                        |> Maybe.map (Tuple.mapSecond FT.text)
+                        |> Expect.equal (formatted |> FT.text |> String.uncons)
             , fuzz formattedText "is the opposite of .cons" <|
                 \formatted ->
                     formatted
-                        |> FormattedText.cons 'a'
-                        |> FormattedText.uncons
+                        |> FT.cons 'a'
+                        |> FT.uncons
                         |> just
                             (Expect.all
                                 [ Tuple.first >> Expect.equal 'a'
@@ -110,85 +110,85 @@ spec =
         , describe ".left"
             [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
                 \first last ->
-                    FormattedText.append first last
-                        |> FormattedText.left (FormattedText.length first)
+                    FT.append first last
+                        |> FT.left (FT.length first)
                         |> equalFormattedTexts first
             , fuzz2 formattedText int "works the same as String.left" <|
                 \formatted n ->
-                    FormattedText.left n formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.left n)
+                    FT.left n formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.left n)
             ]
         , describe ".right"
             [ fuzz2 formattedText formattedText "exactly replicates part of a formatted text" <|
                 \first last ->
-                    FormattedText.append first last
-                        |> FormattedText.right (FormattedText.length last)
+                    FT.append first last
+                        |> FT.right (FT.length last)
                         |> equalFormattedTexts last
             , fuzz2 formattedText int "works the same as String.right" <|
                 \formatted n ->
-                    FormattedText.right n formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.right n)
+                    FT.right n formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.right n)
             ]
         , describe ".dropLeft"
             [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
                 \first last ->
-                    FormattedText.append first last
-                        |> FormattedText.dropLeft (FormattedText.length first)
+                    FT.append first last
+                        |> FT.dropLeft (FT.length first)
                         |> equalFormattedTexts last
             , fuzz2 formattedText int "works the same as String.dropLeft" <|
                 \formatted n ->
-                    FormattedText.dropLeft n formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.dropLeft n)
+                    FT.dropLeft n formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.dropLeft n)
             ]
         , describe ".dropRight"
             [ fuzz2 formattedText formattedText "exactly replicates part of a formated text" <|
                 \first last ->
-                    FormattedText.append first last
-                        |> FormattedText.dropRight (FormattedText.length last)
+                    FT.append first last
+                        |> FT.dropRight (FT.length last)
                         |> equalFormattedTexts first
             , fuzz2 formattedText int "works the same as String.dropRight" <|
                 \formatted n ->
-                    FormattedText.dropRight n formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.dropRight n)
+                    FT.dropRight n formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.dropRight n)
             ]
         , describe ".slice"
             [ fuzz3 formattedText formattedText formattedText "exactly replicated part of a formatted text" <|
                 \first middle last ->
-                    FormattedText.concat [ first, middle, last ]
-                        |> FormattedText.slice
-                            (FormattedText.length first)
-                            (FormattedText.length first + FormattedText.length middle)
+                    FT.concat [ first, middle, last ]
+                        |> FT.slice
+                            (FT.length first)
+                            (FT.length first + FT.length middle)
                         |> equalFormattedTexts middle
             , fuzz3 formattedText int int "works the same as String.slice" <|
                 \formatted start end ->
-                    FormattedText.slice start end formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.slice start end)
+                    FT.slice start end formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.slice start end)
             ]
         , describe ".split"
             [ fuzz2 string formattedText "works the same as String.split" <|
                 \splitter formatted ->
-                    FormattedText.split splitter formatted
-                        |> List.map FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.split splitter)
+                    FT.split splitter formatted
+                        |> List.map FT.text
+                        |> Expect.equal (FT.text formatted |> String.split splitter)
 
             -- Manual test for a use case that gets generated rarely by the fuzzer test above.
             , test "splitter and text are the same" <|
                 \_ ->
-                    FormattedText.split "#" (FormattedText.fromString "#")
-                        |> List.map FormattedText.text
+                    FT.split "#" (FT.fromString "#")
+                        |> List.map FT.text
                         |> Expect.equal [ "", "" ]
             ]
         , describe ".join"
             [ fuzz2 formattedText (shortList formattedText) "works the same as String.join" <|
                 \joiner parts ->
-                    FormattedText.join joiner parts
-                        |> FormattedText.text
-                        |> Expect.equal (String.join (FormattedText.text joiner) (List.map FormattedText.text parts))
+                    FT.join joiner parts
+                        |> FT.text
+                        |> Expect.equal (String.join (FT.text joiner) (List.map FT.text parts))
             ]
         , fuzz (atLeastOneList formattedText) ".join and .split are duals" <|
             \parts ->
@@ -199,72 +199,72 @@ spec =
                     splitter =
                         "😁🐢"
                 in
-                FormattedText.join (FormattedText.fromString splitter) parts
-                    |> FormattedText.split splitter
+                FT.join (FT.fromString splitter) parts
+                    |> FT.split splitter
                     |> equalLists equalFormattedTexts parts
         , describe ".lines"
             [ fuzz formattedText "works the same as String.lines" <|
                 \formatted ->
-                    FormattedText.lines formatted
-                        |> List.map FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.lines)
+                    FT.lines formatted
+                        |> List.map FT.text
+                        |> Expect.equal (FT.text formatted |> String.lines)
             ]
         , describe ".words"
             [ fuzz formattedText "works the same as String.words" <|
                 \formatted ->
-                    FormattedText.words formatted
-                        |> List.map FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.words)
+                    FT.words formatted
+                        |> List.map FT.text
+                        |> Expect.equal (FT.text formatted |> String.words)
             , fuzz formattedText ".words >> .concatenate removes all whitespace" <|
                 \formatted ->
                     let
                         noWhitespace =
-                            FormattedText.Regex.replace
+                            FTRegex.replace
                                 Regex.All
                                 (Regex.regex "\\s+")
-                                (always FormattedText.empty)
+                                (always FT.empty)
                                 formatted
                     in
-                    FormattedText.words formatted
-                        |> FormattedText.concat
+                    FT.words formatted
+                        |> FT.concat
                         |> equalFormattedTexts noWhitespace
             ]
         , describe ".trim"
             [ fuzz formattedText "works the same as String.trim" <|
                 \formatted ->
-                    FormattedText.trim formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.trim)
+                    FT.trim formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.trim)
             ]
         , describe ".trimLeft"
             [ fuzz formattedText "works the same as String.trimLeft" <|
                 \formatted ->
-                    FormattedText.trimLeft formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.trimLeft)
+                    FT.trimLeft formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.trimLeft)
             ]
         , describe ".trimRight"
             [ fuzz formattedText "works the same as String.trimRight" <|
                 \formatted ->
-                    FormattedText.trimRight formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.trimRight)
+                    FT.trimRight formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.trimRight)
             ]
         , describe ".indexes"
             [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.indexes" <|
                 \part whole ->
-                    FormattedText.indexes (FormattedText.fromString part) (FormattedText.fromString whole)
+                    FT.indexes (FT.fromString part) (FT.fromString whole)
                         |> Expect.equal (String.indexes part whole)
             , fuzz2 repetitiveFText repetitiveFTextElement "only shows indexes when formats match too" <|
                 \part whole ->
                     let
                         stringIndexes : List Int
                         stringIndexes =
-                            String.indexes (FormattedText.text part) (FormattedText.text whole)
+                            String.indexes (FT.text part) (FT.text whole)
 
                         formattedIndexes : List Int
                         formattedIndexes =
-                            FormattedText.indexes part whole
+                            FT.indexes part whole
                     in
                     stringIndexes
                         |> assertForAll
@@ -278,15 +278,15 @@ spec =
         , describe ".contains"
             [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.contains" <|
                 \part whole ->
-                    FormattedText.contains (FormattedText.fromString part) (FormattedText.fromString whole)
+                    FT.contains (FT.fromString part) (FT.fromString whole)
                         |> Expect.equal (String.contains part whole)
             , fuzz2 repetitiveFText repetitiveFTextElement "returns false if markup does not match" <|
                 \part whole ->
                     let
                         stringIndexes =
-                            String.indexes (FormattedText.text part) (FormattedText.text whole)
+                            String.indexes (FT.text part) (FT.text whole)
                     in
-                    if FormattedText.contains part whole then
+                    if FT.contains part whole then
                         -- This branch where we have a match is hard to test because we'd need an assertAny.
                         -- It's also already covered by the previous test.
                         Expect.pass
@@ -297,69 +297,69 @@ spec =
         , describe ".startsWith"
             [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.startsWith" <|
                 \start whole ->
-                    FormattedText.startsWith (FormattedText.fromString start) (FormattedText.fromString whole)
+                    FT.startsWith (FT.fromString start) (FT.fromString whole)
                         |> Expect.equal (String.startsWith start whole)
             , fuzz2 formattedText formattedText "returns true if the markup matches" <|
                 \start end ->
                     let
                         whole : FormattedText Markup
                         whole =
-                            FormattedText.append start end
+                            FT.append start end
                     in
-                    FormattedText.startsWith start whole
+                    FT.startsWith start whole
                         |> Expect.true "Expected startsWith to return true"
             , fuzz2 formattedText formattedText "returns false if markup does not match" <|
                 \start end ->
                     let
                         modifiedStart : FormattedText Markup
                         modifiedStart =
-                            FormattedText.addRange { tag = Yellow, start = 0, end = 1 } start
+                            FT.addRange { tag = Yellow, start = 0, end = 1 } start
 
                         whole : FormattedText Markup
                         whole =
-                            FormattedText.append start end
+                            FT.append start end
                     in
-                    if FormattedText.isEmpty start then
+                    if FT.isEmpty start then
                         Expect.pass
                     else
-                        FormattedText.startsWith modifiedStart whole
+                        FT.startsWith modifiedStart whole
                             |> Expect.false "Expected startsWith to return false"
             ]
         , describe ".endsWith"
             [ fuzz2 repetitiveStringElement repetitiveString "works the same as String.endsWith" <|
                 \end whole ->
-                    FormattedText.endsWith (FormattedText.fromString end) (FormattedText.fromString whole)
+                    FT.endsWith (FT.fromString end) (FT.fromString whole)
                         |> Expect.equal (String.endsWith end whole)
             , fuzz2 formattedText formattedText "returns true if the markup matches" <|
                 \start end ->
                     let
                         whole : FormattedText Markup
                         whole =
-                            FormattedText.append start end
+                            FT.append start end
                     in
-                    FormattedText.endsWith end whole
+                    FT.endsWith end whole
                         |> Expect.true "Expected endsWith to return true"
             , fuzz2 formattedText formattedText "returns false if markup does not match" <|
                 \start end ->
                     let
                         modifiedStart : FormattedText Markup
                         modifiedStart =
-                            FormattedText.addRange { tag = Yellow, start = 0, end = 1 } end
+                            FT.addRange { tag = Yellow, start = 0, end = 1 } end
 
                         whole : FormattedText Markup
                         whole =
-                            FormattedText.append start end
+                            FT.append start end
                     in
-                    if FormattedText.isEmpty end then
+                    if FT.isEmpty end then
                         Expect.pass
                     else
-                        FormattedText.endsWith modifiedStart whole
+                        FT.endsWith modifiedStart whole
                             |> Expect.false "Expected endsWith to return false"
             ]
         , describe ".toInt"
             [ fuzz formattedText "works like String.toInt" <|
                 \formatted ->
-                    FormattedText.toInt formatted
+                    FT.toInt formatted
                         |> (\result ->
                                 -- Weirdly we can get 'Ok NaN' here, for instance for the string "+".
                                 -- We can't use isNaN, because elm-make will only allow use of that on floats.
@@ -367,93 +367,93 @@ spec =
                                 if toString result == "Ok NaN" then
                                     Expect.pass
                                 else
-                                    result |> Expect.equal (FormattedText.text formatted |> String.toInt)
+                                    result |> Expect.equal (FT.text formatted |> String.toInt)
                            )
             ]
         , describe ".toFloat"
             [ fuzz formattedText "works like String.toFloat" <|
                 \formatted ->
-                    FormattedText.toFloat formatted
-                        |> Expect.equal (FormattedText.text formatted |> String.toFloat)
+                    FT.toFloat formatted
+                        |> Expect.equal (FT.text formatted |> String.toFloat)
             ]
         , describe ".toList"
             [ fuzz formattedText "works like String.toList" <|
                 \formatted ->
-                    FormattedText.toList formatted
-                        |> Expect.equal (FormattedText.text formatted |> String.toList)
+                    FT.toList formatted
+                        |> Expect.equal (FT.text formatted |> String.toList)
             ]
         , describe ".fromList"
             [ fuzz (list char) "works like String.fromList" <|
                 \chars ->
-                    FormattedText.fromList chars
-                        |> Expect.equal (String.fromList chars |> FormattedText.fromString)
+                    FT.fromList chars
+                        |> Expect.equal (String.fromList chars |> FT.fromString)
             ]
         , describe ".toUpper"
             [ fuzz formattedText "works like String.toUpper" <|
                 \formatted ->
-                    FormattedText.toUpper formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.toUpper)
+                    FT.toUpper formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.toUpper)
             ]
         , describe ".toLower"
             [ fuzz formattedText "works like String.toLower" <|
                 \formatted ->
-                    FormattedText.toLower formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.toLower)
+                    FT.toLower formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.toLower)
             ]
         , describe ".padLeft"
             [ fuzz3 char (intRange -10 1000) formattedText "works like String.padLeft" <|
                 \char upTo formatted ->
-                    FormattedText.padLeft upTo char [] formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.padLeft upTo char)
+                    FT.padLeft upTo char [] formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.padLeft upTo char)
             , fuzz3 char (intRange -10 1000) formattedText "Adds the right markup to the padding" <|
                 \char upTo formatted ->
                     let
                         paddingLength : Int
                         paddingLength =
-                            upTo - FormattedText.length formatted
+                            upTo - FT.length formatted
 
                         padding : FormattedText Markup
                         padding =
-                            FormattedText.fromChar char
-                                |> FormattedText.formatAll Yellow
-                                |> FormattedText.repeat paddingLength
+                            FT.fromChar char
+                                |> FT.formatAll Yellow
+                                |> FT.repeat paddingLength
                     in
-                    FormattedText.padLeft upTo char [ Yellow ] formatted
-                        |> FormattedText.left paddingLength
+                    FT.padLeft upTo char [ Yellow ] formatted
+                        |> FT.left paddingLength
                         |> equalFormattedTexts padding
             ]
         , describe ".padRight"
             [ fuzz3 char (intRange -10 1000) formattedText "works like String.padRight" <|
                 \char upTo formatted ->
-                    FormattedText.padRight upTo char [] formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.padRight upTo char)
+                    FT.padRight upTo char [] formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.padRight upTo char)
             , fuzz3 char (intRange -10 1000) formattedText "Adds the right markup to the padding" <|
                 \char upTo formatted ->
                     let
                         paddingLength : Int
                         paddingLength =
-                            upTo - FormattedText.length formatted
+                            upTo - FT.length formatted
 
                         padding : FormattedText Markup
                         padding =
-                            FormattedText.fromChar char
-                                |> FormattedText.formatAll Yellow
-                                |> FormattedText.repeat paddingLength
+                            FT.fromChar char
+                                |> FT.formatAll Yellow
+                                |> FT.repeat paddingLength
                     in
-                    FormattedText.padRight upTo char [ Yellow ] formatted
-                        |> FormattedText.right paddingLength
+                    FT.padRight upTo char [ Yellow ] formatted
+                        |> FT.right paddingLength
                         |> equalFormattedTexts padding
             ]
         , describe ".pad"
             [ fuzz3 char (intRange -10 1000) formattedText "works like String.pad" <|
                 \char upTo formatted ->
-                    FormattedText.pad upTo char [] formatted
-                        |> FormattedText.text
-                        |> Expect.equal (FormattedText.text formatted |> String.pad upTo char)
+                    FT.pad upTo char [] formatted
+                        |> FT.text
+                        |> Expect.equal (FT.text formatted |> String.pad upTo char)
             ]
         ]
 
@@ -486,11 +486,11 @@ repetitiveFTextElement =
 
 assertPartAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
 assertPartAt part whole index =
-    FormattedText.slice index (index + FormattedText.length part) whole
+    FT.slice index (index + FT.length part) whole
         |> Expect.equal part
 
 
 assertPartNotAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
 assertPartNotAt part whole index =
-    FormattedText.slice index (index + FormattedText.length part) whole
+    FT.slice index (index + FT.length part) whole
         |> Expect.notEqual part
