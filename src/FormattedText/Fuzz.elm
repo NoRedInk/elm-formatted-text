@@ -4,9 +4,14 @@ module FormattedText.Fuzz exposing (Markup(..), customFormattedText, formattedTe
 
 This can be used to test code that makes use of FormattedText.
 
+@docs Markup
+@docs formattedText
+@docs customFormattedText
+@docs markup
+
 -}
 
-import FormattedText exposing (FormattedText, Range)
+import FormattedText as FT exposing (FormattedText, Range)
 import Fuzz exposing (..)
 
 
@@ -104,14 +109,14 @@ buildFormattedText text protoRanges =
         ranges =
             List.map ((|>) text) protoRanges
     in
-    FormattedText.formattedText text ranges
+    FT.formattedText text ranges
 
 
 shortList : Fuzzer a -> Fuzzer (List a)
 shortList fuzzer =
     Fuzz.oneOf
-        [ Fuzz.constant []
-        , Fuzz.map (\a -> [ a ]) fuzzer
-        , Fuzz.map2 (\a b -> [ a, b ]) fuzzer fuzzer
-        , Fuzz.map3 (\a b c -> [ a, b, c ]) fuzzer fuzzer fuzzer
+        [ constant []
+        , map (\a -> [ a ]) fuzzer
+        , map2 (\a b -> [ a, b ]) fuzzer fuzzer
+        , map3 (\a b c -> [ a, b, c ]) fuzzer fuzzer fuzzer
         ]
