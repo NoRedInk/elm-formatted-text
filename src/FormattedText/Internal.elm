@@ -1,10 +1,6 @@
 module FormattedText.Internal exposing (FormattedText, addRange, fromString, overlap, ranges, text)
 
 {-| These types and functions are pulled from `Nri.FormattedText` to ensure constraints on the `FormattedText` type are always kept.
-The module should ever only be imported from `Nri.FormattedText`.
-
-@docs FormattedText, addRange, fromString, ranges, text, overlap
-
 -}
 
 

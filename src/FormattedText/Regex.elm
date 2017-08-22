@@ -2,7 +2,11 @@ module FormattedText.Regex exposing (Match, contains, find, replace, split)
 
 {-| Regex operations for FormattedText
 
-@docs Match, contains, find, replace, split
+@docs Match
+@docs contains
+@docs find
+@docs replace
+@docs split
 
 -}
 

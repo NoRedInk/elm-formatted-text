@@ -5,17 +5,64 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## Types
 
-@docs FormattedText, Range
+@docs FormattedText
+@docs Range
 
 
-## Creation and extraction
+## Creation
 
-@docs formattedText, text, fromString, ranges, chunks, unchunk, formatAll, addRange
+@docs formattedText
+@docs fromString
+@docs addRange
+@docs unchunk
+@docs formatAll
 
 
-## String equivalent operations
+## Extraction
 
-@docs empty, append, concat, length, isEmpty, reverse, repeat, cons, uncons, fromChar, left, right, slice, dropLeft, dropRight, split, join, lines, words, trim, trimLeft, trimRight, indexes, indices, contains, startsWith, endsWith, toInt, toFloat, toList, fromList, toUpper, toLower, padLeft, padRight, pad
+@docs text
+@docs ranges
+@docs chunks
+
+
+## String-like operations for FormattedText
+
+@docs append
+@docs concat
+@docs cons
+@docs contains
+@docs dropLeft
+@docs dropRight
+@docs empty
+@docs endsWith
+@docs fromChar
+@docs fromList
+@docs indexes
+@docs indices
+@docs isEmpty
+@docs join
+@docs left
+@docs length
+@docs lines
+@docs pad
+@docs padLeft
+@docs padRight
+@docs repeat
+@docs reverse
+@docs right
+@docs slice
+@docs split
+@docs startsWith
+@docs toFloat
+@docs toInt
+@docs toList
+@docs toLower
+@docs toUpper
+@docs trim
+@docs trimLeft
+@docs trimRight
+@docs uncons
+@docs words
 
 -}
 
