@@ -657,6 +657,26 @@ filter =
         ]
 
 
+any : Test
+any =
+    describe ".any"
+        [ fuzz formattedText "works like String.any" <|
+            \formatted ->
+                FT.any Char.isUpper formatted
+                    |> Expect.equal (FT.text formatted |> String.any Char.isUpper)
+        ]
+
+
+all : Test
+all =
+    describe ".all"
+        [ fuzz formattedText "works like String.all" <|
+            \formatted ->
+                FT.all Char.isUpper formatted
+                    |> Expect.equal (FT.text formatted |> String.all Char.isUpper)
+        ]
+
+
 repetitiveString : Fuzzer String
 repetitiveString =
     Fuzz.list repetitiveStringElement

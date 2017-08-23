@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, all, any, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -27,6 +27,8 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 
 ## String-like operations for FormattedText
 
+@docs all
+@docs any
 @docs append
 @docs concat
 @docs cons
@@ -539,6 +541,20 @@ foldr : (Char -> b -> b) -> b -> FormattedText markup -> b
 foldr foldfn start formatted =
     text formatted
         |> String.foldr foldfn start
+
+
+{-| -}
+any : (Char -> Bool) -> FormattedText markup -> Bool
+any predicate formatted =
+    text formatted
+        |> String.any predicate
+
+
+{-| -}
+all : (Char -> Bool) -> FormattedText markup -> Bool
+all predicate formatted =
+    text formatted
+        |> String.all predicate
 
 
 {-| Helper type for the chunks function.
