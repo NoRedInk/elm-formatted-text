@@ -636,6 +636,27 @@ foldr =
         ]
 
 
+filter : Test
+filter =
+    describe ".filter"
+        [ fuzz formattedText "works like String.filter" <|
+            \formatted ->
+                FT.filter Char.isUpper formatted
+                    |> FT.text
+                    |> Expect.equal (FT.text formatted |> String.filter Char.isUpper)
+        , fuzz formattedText "does not touch formatting" <|
+            \formatted ->
+                FT.filter Char.isUpper formatted
+                    |> equalFormattedTexts
+                        (FTRegex.replace
+                            Regex.All
+                            (Regex.regex "[^A-Z]+")
+                            (always FT.empty)
+                            formatted
+                        )
+        ]
+
+
 repetitiveString : Fuzzer String
 repetitiveString =
     Fuzz.list repetitiveStringElement

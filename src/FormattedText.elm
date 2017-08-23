@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -35,6 +35,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 @docs dropRight
 @docs empty
 @docs endsWith
+@docs filter
 @docs foldl
 @docs foldr
 @docs fromChar
@@ -509,6 +510,21 @@ map fn formatted =
     formattedText
         (String.map fn (text formatted))
         (ranges formatted)
+
+
+{-| -}
+filter : (Char -> Bool) -> FormattedText markup -> FormattedText markup
+filter predicate formatted =
+    let
+        keepCharString : FormattedText markup -> Bool
+        keepCharString charString =
+            String.uncons (text charString)
+                |> Maybe.map (Tuple.first >> predicate)
+                |> Maybe.withDefault False
+    in
+    split "" formatted
+        |> List.filter keepCharString
+        |> concat
 
 
 {-| -}
