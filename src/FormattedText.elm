@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -35,6 +35,8 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 @docs dropRight
 @docs empty
 @docs endsWith
+@docs foldl
+@docs foldr
 @docs fromChar
 @docs fromList
 @docs indexes
@@ -44,6 +46,7 @@ module FormattedText exposing (FormattedText, Range, addRange, append, chunks, c
 @docs left
 @docs length
 @docs lines
+@docs map
 @docs pad
 @docs padLeft
 @docs padRight
@@ -498,6 +501,28 @@ createPadding amount char markups =
             String.repeat amount (String.fromChar char)
     in
     List.foldl formatAll (fromString paddingString) markups
+
+
+{-| -}
+map : (Char -> Char) -> FormattedText markup -> FormattedText markup
+map fn formatted =
+    formattedText
+        (String.map fn (text formatted))
+        (ranges formatted)
+
+
+{-| -}
+foldl : (Char -> b -> b) -> b -> FormattedText markup -> b
+foldl foldfn start formatted =
+    text formatted
+        |> String.foldl foldfn start
+
+
+{-| -}
+foldr : (Char -> b -> b) -> b -> FormattedText markup -> b
+foldr foldfn start formatted =
+    text formatted
+        |> String.foldr foldfn start
 
 
 {-| Helper type for the chunks function.

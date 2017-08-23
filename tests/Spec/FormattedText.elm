@@ -1,5 +1,6 @@
 module Spec.FormattedText exposing (..)
 
+import Char
 import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
@@ -597,6 +598,41 @@ pad =
                 FT.pad upTo char [] formatted
                     |> FT.text
                     |> Expect.equal (FT.text formatted |> String.pad upTo char)
+        ]
+
+
+map : Test
+map =
+    describe ".map"
+        [ fuzz formattedText "works like String.map" <|
+            \formatted ->
+                FT.map Char.toUpper formatted
+                    |> FT.text
+                    |> Expect.equal (FT.text formatted |> String.map Char.toUpper)
+        , fuzz formattedText "does not touch formatting" <|
+            \formatted ->
+                FT.map identity formatted
+                    |> equalFormattedTexts formatted
+        ]
+
+
+foldl : Test
+foldl =
+    describe ".foldl"
+        [ fuzz formattedText "works like String.foldl" <|
+            \formatted ->
+                FT.foldl String.cons "" formatted
+                    |> Expect.equal (FT.text formatted |> String.foldl String.cons "")
+        ]
+
+
+foldr : Test
+foldr =
+    describe ".foldr"
+        [ fuzz formattedText "works like String.foldr" <|
+            \formatted ->
+                FT.foldr String.cons "" formatted
+                    |> Expect.equal (FT.text formatted |> String.foldr String.cons "")
         ]
 
 
