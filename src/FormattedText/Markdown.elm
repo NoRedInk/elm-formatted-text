@@ -21,6 +21,8 @@ import Markdown.Config
 import Markdown.Inline
 
 
+{-| The different types of inline formatting that Markdown supports.
+-}
 type Markdown
     = Code
     | Link String
@@ -28,6 +30,9 @@ type Markdown
     | Italic
 
 
+{-| Turn a markdown-formatted string into a FormattedText.
+Parsing will fail if the markdown contains block-level styling, which is not supported.
+-}
 parse : String -> Result String (FormattedText Markdown)
 parse markdown =
     let
@@ -48,6 +53,12 @@ parse markdown =
             Err "Block level markdown elements are not supported."
 
 
+{-| Render the markdown-formatted text as Html, using `strong`, `em`, `code`, and `link` tags.
+
+If you want to render your markdown in a different way take a look at the implementation of this function
+to see how you can use `FormattedText.chunks` to do so in a simple way.
+
+-}
 view : FormattedText Markdown -> List (Html msg)
 view formatted =
     FT.chunks viewChunk formatted
@@ -65,7 +76,7 @@ viewTag tags child =
             child
 
         Bold :: xs ->
-            Html.em [] [ viewTag xs child ]
+            Html.strong [] [ viewTag xs child ]
 
         Italic :: xs ->
             Html.em [] [ viewTag xs child ]
