@@ -28,7 +28,9 @@ type alias Match markup =
     }
 
 
-{-| -}
+{-| Find regex matches in a FormattedText.
+This is the equivalent of `Regex.find`.
+-}
 find : Regex.HowMany -> Regex -> FormattedText markup -> List (Match markup)
 find howMany regex formatted =
     text formatted
@@ -44,7 +46,9 @@ fromStringMatch fullFormatted { match, index, number } =
     }
 
 
-{-| -}
+{-| Replace regex matches in a FormattedText.
+This is the equivalent of `Regex.replace`.
+-}
 replace :
     Regex.HowMany
     -> Regex
@@ -67,7 +71,9 @@ replace howMany regex replacer formatted =
         |> List.foldr replaceMatch formatted
 
 
-{-| -}
+{-| Split a FormattedText on matches with a regex.
+This is the equivalent of `Regex.split`.
+-}
 split : Regex.HowMany -> Regex -> FormattedText markup -> List (FormattedText markup)
 split howMany regex formatted =
     let
@@ -109,7 +115,9 @@ splitAround { match, index } formatted =
     )
 
 
-{-| -}
+{-| Check if a FormattedText contains matches with a regex.
+This is the equivalent of `Regex.contains`.
+-}
 contains : Regex -> FormattedText markup -> Bool
 contains regex formatted =
     Regex.contains regex (text formatted)
