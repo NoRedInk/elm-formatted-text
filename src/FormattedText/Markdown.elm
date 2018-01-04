@@ -102,9 +102,7 @@ viewBlock block =
                 |> List.singleton
 
         CodeBlock contents ->
-            Html.code [] [ Html.text contents ]
-                |> List.singleton
-                |> Html.div []
+            Html.pre [] [ Html.text contents ]
                 |> List.singleton
 
         Paragraph formatted ->
