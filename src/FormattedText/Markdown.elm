@@ -169,9 +169,9 @@ parseInline inline =
                 |> FT.concat
                 |> FT.formatAll (Link link)
 
-        Markdown.Inline.HtmlInline _ _ _ ->
-            -- We're not parsing Html so we should never get this.
-            FT.empty
+        Markdown.Inline.HtmlInline _ _ subInlines ->
+            List.map parseInline subInlines
+                |> FT.concat
 
         Markdown.Inline.Emphasis 0 subInlines ->
             List.map parseInline subInlines
@@ -193,6 +193,6 @@ parseInline inline =
                 |> FT.formatAll Bold
                 |> FT.formatAll Italic
 
-        Markdown.Inline.Custom _ _ ->
-            -- We're not defining custom elements so we should never get this.
-            FT.empty
+        Markdown.Inline.Custom _ subInlines ->
+            List.map parseInline subInlines
+                |> FT.concat
