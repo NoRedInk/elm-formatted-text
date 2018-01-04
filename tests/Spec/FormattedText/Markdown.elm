@@ -2,20 +2,30 @@ module Spec.FormattedText.Markdown exposing (parseThenView)
 
 import Expect
 import FormattedText.Markdown as Markdown
-import Html exposing (a, code, em, strong, text)
+import Html exposing (a, code, em, h1, p, strong, text)
 import Html.Attributes exposing (href)
 import Test exposing (..)
+
+
+markdown : String
+markdown =
+    """
+# A header
+
+This **amazing** _string_ contains [markdown](https://en.wikipedia.org/wiki/Markdown) `code`
+"""
 
 
 parseThenView : Test
 parseThenView =
     test "parse then view markdown" <|
         \_ ->
-            "This **amazing** _string_ contains [markdown](https://en.wikipedia.org/wiki/Markdown) `code`"
+            markdown
                 |> Markdown.parse
-                |> Result.map Markdown.view
+                |> Markdown.view
                 |> Expect.equal
-                    (Ok
+                    [ h1 [] [ text "A header" ]
+                    , p []
                         [ text "This "
                         , strong [] [ text "amazing" ]
                         , text " "
@@ -25,4 +35,4 @@ parseThenView =
                         , text " "
                         , code [] [ text "code" ]
                         ]
-                    )
+                    ]
