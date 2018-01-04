@@ -1,4 +1,4 @@
-module FormattedText.Markdown exposing (Block(..), Markdown(..), parse, view)
+module FormattedText.Markdown exposing (Block(..), Markdown(..), parse, view, viewInline)
 
 {-| A specific FormattedText type for inline markdown.
 
@@ -11,6 +11,7 @@ you might want to create a custom type for that structure.
 @docs Block
 @docs parse
 @docs view
+@docs viewInline
 
 -}
 
@@ -62,14 +63,88 @@ parse markdown =
         |> List.concatMap parseBlock
 
 
-{-| Render the markdown-formatted text as Html, using `strong`, `em`, `code`, and `link` tags.
+{-| Render the markdown-formatted text as Html.
+-}
+view : List Block -> List (Html msg)
+view blocks =
+    List.concatMap viewBlock blocks
+
+
+viewBlock : Block -> List (Html msg)
+viewBlock block =
+    case block of
+        ThematicBreak ->
+            [ Html.hr [] []
+            ]
+
+        Heading 1 formatted ->
+            Html.h1 [] (viewInline formatted)
+                |> List.singleton
+
+        Heading 2 formatted ->
+            Html.h2 [] (viewInline formatted)
+                |> List.singleton
+
+        Heading 3 formatted ->
+            Html.h3 [] (viewInline formatted)
+                |> List.singleton
+
+        Heading 4 formatted ->
+            Html.h4 [] (viewInline formatted)
+                |> List.singleton
+
+        Heading 5 formatted ->
+            Html.h5 [] (viewInline formatted)
+                |> List.singleton
+
+        Heading _ formatted ->
+            Html.h6 [] (viewInline formatted)
+                |> List.singleton
+
+        CodeBlock contents ->
+            Html.code [] [ Html.text contents ]
+                |> List.singleton
+                |> Html.div []
+                |> List.singleton
+
+        Paragraph formatted ->
+            Html.p [] (viewInline formatted)
+                |> List.singleton
+
+        BlockQuote blocks ->
+            List.concatMap viewBlock blocks
+                |> Html.blockquote []
+                |> List.singleton
+
+        UnOrderedList items ->
+            List.map viewItem items
+                |> Html.ul []
+                |> List.singleton
+
+        OrderedList items ->
+            List.map viewItem items
+                |> Html.ol []
+                |> List.singleton
+
+        PlainInline formatted ->
+            viewInline formatted
+
+
+viewItem : List Block -> Html msg
+viewItem blocks =
+    List.concatMap viewBlock blocks
+        |> Html.li []
+
+
+{-| If you have your own logic for rendering the markdown block elements, you
+can call this function to render the inline portions of the Markdown.
 
 If you want to render your markdown in a different way take a look at the implementation of this function
 to see how you can use `FormattedText.chunks` to do so in a simple way.
 
 -}
-view : FormattedText Markdown -> List (Html msg)
-view formatted =
+viewInline : FormattedText Markdown -> List (Html msg)
+viewInline formatted =
     FT.chunks viewChunk formatted
 
 
