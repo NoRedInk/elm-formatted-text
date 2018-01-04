@@ -59,7 +59,7 @@ parse markdown =
             }
     in
     Markdown.Block.parse (Just options) markdown
-        |> List.map parseBlock
+        |> List.concatMap parseBlock
 
 
 {-| Render the markdown-formatted text as Html, using `strong`, `em`, `code`, and `link` tags.
@@ -99,17 +99,50 @@ viewTag tags child =
                 [ viewTag xs child ]
 
 
-parseBlock : Markdown.Block.Block b i -> Block
+parseBlock : Markdown.Block.Block b i -> List Block
 parseBlock block =
     case block of
-        Markdown.Block.PlainInlines inlines ->
-            PlainInline (List.map parseInline inlines |> FT.concat)
+        Markdown.Block.BlankLine contents ->
+            FT.fromString contents
+                |> PlainInline
+                |> List.singleton
+
+        Markdown.Block.ThematicBreak ->
+            [ ThematicBreak ]
+
+        Markdown.Block.Heading _ level inlines ->
+            Heading level (List.map parseInline inlines |> FT.concat)
+                |> List.singleton
+
+        Markdown.Block.CodeBlock _ contents ->
+            [ CodeBlock contents ]
 
         Markdown.Block.Paragraph _ inlines ->
             Paragraph (List.map parseInline inlines |> FT.concat)
+                |> List.singleton
 
-        _ ->
-            Debug.crash "TODO: fix this!"
+        Markdown.Block.BlockQuote blocks ->
+            List.concatMap parseBlock blocks
+                |> BlockQuote
+                |> List.singleton
+
+        Markdown.Block.List { type_ } items ->
+            List.concatMap (List.map parseBlock) items
+                |> (case type_ of
+                        Markdown.Block.Unordered ->
+                            UnOrderedList
+
+                        Markdown.Block.Ordered _ ->
+                            OrderedList
+                   )
+                |> List.singleton
+
+        Markdown.Block.PlainInlines inlines ->
+            PlainInline (List.map parseInline inlines |> FT.concat)
+                |> List.singleton
+
+        Markdown.Block.Custom _ blocks ->
+            List.concatMap parseBlock blocks
 
 
 parseInline : Markdown.Inline.Inline i -> FormattedText Markdown
