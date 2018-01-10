@@ -1,4 +1,4 @@
-module FormattedText.Markdown exposing (Block(..), Markdown(..), parse, view, viewInline)
+module FormattedText.Markdown exposing (Block(..), Markdown(..), parse, parseInline, view, viewInline)
 
 {-| A specific FormattedText type for inline markdown.
 
@@ -10,6 +10,7 @@ you might want to create a custom type for that structure.
 @docs Markdown
 @docs Block
 @docs parse
+@docs parseInline
 @docs view
 @docs viewInline
 
@@ -51,16 +52,29 @@ The inline portions of the Block structure will be instances of FormattedText.
 
 -}
 parse : String -> List Block
-parse markdown =
-    let
-        options : Markdown.Config.Options
-        options =
-            { softAsHardLineBreak = False
-            , rawHtml = Markdown.Config.DontParse
-            }
-    in
-    Markdown.Block.parse (Just options) markdown
-        |> List.concatMap parseBlock
+parse =
+    Markdown.Block.parse (Just options) >> List.concatMap parseBlock
+
+
+{-| Turn a markdown-formatted string into a FormattedText.
+Parsing will fail if the markdown contains block-level styling, which is not supported.
+-}
+parseInline : String -> Result String (FormattedText Markdown)
+parseInline markdown =
+    case Markdown.Block.parse (Just options) markdown of
+        -- It seems to be always first wrapped in a `Paragraph` and never directly a `PlainInline`
+        [ Markdown.Block.Paragraph _ inlines ] ->
+            Ok (List.map parseInlineMarkdown inlines |> FT.concat)
+
+        _ ->
+            Err "Block level markdown elements are not supported."
+
+
+options : Markdown.Config.Options
+options =
+    { softAsHardLineBreak = False
+    , rawHtml = Markdown.Config.DontParse
+    }
 
 
 {-| Render the markdown-formatted text as Html.
@@ -184,14 +198,14 @@ parseBlock block =
             [ ThematicBreak ]
 
         Markdown.Block.Heading _ level inlines ->
-            Heading level (List.map parseInline inlines |> FT.concat)
+            Heading level (List.map parseInlineMarkdown inlines |> FT.concat)
                 |> List.singleton
 
         Markdown.Block.CodeBlock _ contents ->
             [ CodeBlock contents ]
 
         Markdown.Block.Paragraph _ inlines ->
-            Paragraph (List.map parseInline inlines |> FT.concat)
+            Paragraph (List.map parseInlineMarkdown inlines |> FT.concat)
                 |> List.singleton
 
         Markdown.Block.BlockQuote blocks ->
@@ -211,15 +225,15 @@ parseBlock block =
                 |> List.singleton
 
         Markdown.Block.PlainInlines inlines ->
-            PlainInline (List.map parseInline inlines |> FT.concat)
+            PlainInline (List.map parseInlineMarkdown inlines |> FT.concat)
                 |> List.singleton
 
         Markdown.Block.Custom _ blocks ->
             List.concatMap parseBlock blocks
 
 
-parseInline : Markdown.Inline.Inline i -> FormattedText Markdown
-parseInline inline =
+parseInlineMarkdown : Markdown.Inline.Inline i -> FormattedText Markdown
+parseInlineMarkdown inline =
     case inline of
         Markdown.Inline.Text string ->
             FT.fromString string
@@ -231,41 +245,41 @@ parseInline inline =
             FT.fromString string |> FT.formatAll Code
 
         Markdown.Inline.Link link _ subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
                 |> FT.formatAll (Link link)
 
         Markdown.Inline.Image link _ subInlines ->
             -- An image is not really an inline element.
             -- We're just going to render it as a link.
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
                 |> FT.formatAll (Link link)
 
         Markdown.Inline.HtmlInline _ _ subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
 
         Markdown.Inline.Emphasis 0 subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
 
         Markdown.Inline.Emphasis 1 subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
                 |> FT.formatAll Italic
 
         Markdown.Inline.Emphasis 2 subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
                 |> FT.formatAll Bold
 
         Markdown.Inline.Emphasis _ subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
                 |> FT.formatAll Bold
                 |> FT.formatAll Italic
 
         Markdown.Inline.Custom _ subInlines ->
-            List.map parseInline subInlines
+            List.map parseInlineMarkdown subInlines
                 |> FT.concat
