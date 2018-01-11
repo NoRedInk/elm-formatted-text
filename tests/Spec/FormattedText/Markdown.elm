@@ -1,4 +1,4 @@
-module Spec.FormattedText.Markdown exposing (parseThenView)
+module Spec.FormattedText.Markdown exposing (parseInlineThenViewInline, parseThenView)
 
 import Expect
 import FormattedText.Markdown as Markdown
@@ -36,3 +36,21 @@ parseThenView =
                         , code [] [ text "code" ]
                         ]
                     ]
+
+
+parseInlineThenViewInline : Test
+parseInlineThenViewInline =
+    describe "parse inline markdown"
+        [ test "newlines at the end/start shouldn't matter" <|
+            \() ->
+                "This is **cool**!"
+                    |> Markdown.parseInline
+                    |> Result.map Markdown.viewInline
+                    |> Expect.equal
+                        (Ok
+                            [ text "This is "
+                            , strong [] [ text "cool" ]
+                            , text "!"
+                            ]
+                        )
+        ]
