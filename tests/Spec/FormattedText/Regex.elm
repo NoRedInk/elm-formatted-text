@@ -2,12 +2,12 @@ module Spec.FormattedText.Regex exposing (..)
 
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (Markup, formattedText)
+import FormattedText.Fuzz exposing (Markup, equals, formattedText)
 import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
 import Test exposing (..)
-import Util exposing (assertForAll, equalFormattedTexts)
+import Util exposing (assertForAll)
 
 
 find : Test
@@ -89,7 +89,7 @@ replace =
                         Regex.regex "[a-z]+"
                 in
                 FTRegex.replace howMany regex (.match >> identity) formatted
-                    |> equalFormattedTexts formatted
+                    |> equals formatted
         ]
 
 
@@ -138,7 +138,7 @@ split =
                 in
                 interweave nonMatches matches
                     |> FT.concat
-                    |> equalFormattedTexts formatted
+                    |> equals formatted
         ]
 
 

@@ -1,4 +1,4 @@
-module FormattedText.Fuzz exposing (Markup(..), customFormattedText, formattedText, markup)
+module FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
 
 {-| Fuzzers of FormattedText types
 
@@ -8,9 +8,13 @@ This can be used to test code that makes use of FormattedText.
 @docs formattedText
 @docs customFormattedText
 @docs markup
+@docs equals
 
 -}
 
+import Compare
+import EqualCheck exposing (EqualCheck)
+import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
 import Fuzz exposing (..)
 
@@ -120,3 +124,27 @@ shortList fuzzer =
         , map2 (\a b -> [ a, b ]) fuzzer fuzzer
         , map3 (\a b c -> [ a, b, c ]) fuzzer fuzzer fuzzer
         ]
+
+
+{-| Expect to formatted texts to be equal.
+
+Use this in tests for running assertions against your formatted text.
+
+-}
+equals : EqualCheck (FormattedText markup)
+equals formattedA formattedB =
+    formattedB
+        |> Expect.all
+            [ FT.ranges >> equalRanges (FT.ranges formattedA)
+            , FT.text >> Expect.equal (FT.text formattedA)
+            ]
+
+
+equalRanges : EqualCheck (List (Range markup))
+equalRanges rangesA rangesB =
+    let
+        orderRanges : Compare.Comparator (Range markup)
+        orderRanges =
+            Compare.concat [ Compare.by .start, Compare.by (.tag >> toString) ]
+    in
+    EqualCheck.listContents orderRanges rangesA rangesB

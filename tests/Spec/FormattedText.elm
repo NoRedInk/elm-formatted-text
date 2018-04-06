@@ -5,12 +5,12 @@ import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, formattedText, markup)
+import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, equals, formattedText, markup)
 import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, char, int, intRange, list, string)
 import Regex
 import Test exposing (..)
-import Util exposing (assertForAll, atLeastOneList, equalFormattedTexts, equalLists, equalRanges, just, rangesDontOverlap, shortList)
+import Util exposing (assertForAll, atLeastOneList, equalLists, equalRanges, just, rangesDontOverlap, shortList)
 
 
 noOverlap : Test
@@ -44,7 +44,7 @@ append =
     fuzz2 string string ".append" <|
         \a b ->
             FT.append (FT.fromString a) (FT.fromString b)
-                |> equalFormattedTexts (FT.fromString <| a ++ b)
+                |> equals (FT.fromString <| a ++ b)
 
 
 concat : Test
@@ -53,7 +53,7 @@ concat =
         \xs ->
             List.map FT.fromString xs
                 |> FT.concat
-                |> equalFormattedTexts (FT.fromString <| String.concat xs)
+                |> equals (FT.fromString <| String.concat xs)
 
 
 fromStringTextDuality : Test
@@ -83,7 +83,7 @@ chunksUnchunkDuality =
             formatted
                 |> FT.chunks (,)
                 |> FT.unchunk
-                |> equalFormattedTexts formatted
+                |> equals formatted
 
 
 reverse : Test
@@ -94,7 +94,7 @@ reverse =
                 formatted
                     |> FT.reverse
                     |> FT.reverse
-                    |> equalFormattedTexts formatted
+                    |> equals formatted
         , fuzz formattedText "works the same as String.reverse" <|
             \formatted ->
                 formatted
@@ -143,7 +143,7 @@ uncons =
                     |> just
                         (Expect.all
                             [ Tuple.first >> Expect.equal 'a'
-                            , Tuple.second >> equalFormattedTexts formatted
+                            , Tuple.second >> equals formatted
                             ]
                         )
         ]
@@ -156,7 +156,7 @@ left =
             \first last ->
                 FT.append first last
                     |> FT.left (FT.length first)
-                    |> equalFormattedTexts first
+                    |> equals first
         , fuzz2 formattedText int "works the same as String.left" <|
             \formatted n ->
                 FT.left n formatted
@@ -172,7 +172,7 @@ right =
             \first last ->
                 FT.append first last
                     |> FT.right (FT.length last)
-                    |> equalFormattedTexts last
+                    |> equals last
         , fuzz2 formattedText int "works the same as String.right" <|
             \formatted n ->
                 FT.right n formatted
@@ -188,7 +188,7 @@ dropLeft =
             \first last ->
                 FT.append first last
                     |> FT.dropLeft (FT.length first)
-                    |> equalFormattedTexts last
+                    |> equals last
         , fuzz2 formattedText int "works the same as String.dropLeft" <|
             \formatted n ->
                 FT.dropLeft n formatted
@@ -204,7 +204,7 @@ dropRight =
             \first last ->
                 FT.append first last
                     |> FT.dropRight (FT.length last)
-                    |> equalFormattedTexts first
+                    |> equals first
         , fuzz2 formattedText int "works the same as String.dropRight" <|
             \formatted n ->
                 FT.dropRight n formatted
@@ -222,7 +222,7 @@ slice =
                     |> FT.slice
                         (FT.length first)
                         (FT.length first + FT.length middle)
-                    |> equalFormattedTexts middle
+                    |> equals middle
         , fuzz3 formattedText int int "works the same as String.slice" <|
             \formatted start end ->
                 FT.slice start end formatted
@@ -273,7 +273,7 @@ joinSplitDuality =
             in
             FT.join (FT.fromString splitter) parts
                 |> FT.split splitter
-                |> equalLists equalFormattedTexts parts
+                |> equalLists equals parts
 
 
 lines : Test
@@ -307,7 +307,7 @@ words =
                 in
                 FT.words formatted
                     |> FT.concat
-                    |> equalFormattedTexts noWhitespace
+                    |> equals noWhitespace
         ]
 
 
@@ -559,7 +559,7 @@ padLeft =
                 in
                 FT.padLeft upTo char [ Yellow ] formatted
                     |> FT.left paddingLength
-                    |> equalFormattedTexts padding
+                    |> equals padding
         ]
 
 
@@ -586,7 +586,7 @@ padRight =
                 in
                 FT.padRight upTo char [ Yellow ] formatted
                     |> FT.right paddingLength
-                    |> equalFormattedTexts padding
+                    |> equals padding
         ]
 
 
@@ -612,7 +612,7 @@ map =
         , fuzz formattedText "does not touch formatting" <|
             \formatted ->
                 FT.map identity formatted
-                    |> equalFormattedTexts formatted
+                    |> equals formatted
         ]
 
 
@@ -647,7 +647,7 @@ filter =
         , fuzz formattedText "does not touch formatting" <|
             \formatted ->
                 FT.filter Char.isUpper formatted
-                    |> equalFormattedTexts
+                    |> equals
                         (FTRegex.replace
                             Regex.All
                             (Regex.regex "[^A-Z]+")
