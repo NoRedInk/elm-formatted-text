@@ -23,15 +23,6 @@ just expectation maybe =
             expectation x
 
 
-equalFormattedTexts : EqualCheck (FormattedText markup)
-equalFormattedTexts formattedA formattedB =
-    formattedB
-        |> Expect.all
-            [ FT.ranges >> equalRanges (FT.ranges formattedA)
-            , FT.text >> Expect.equal (FT.text formattedA)
-            ]
-
-
 equalRanges : EqualCheck (List (Range markup))
 equalRanges rangesA rangesB =
     let
