@@ -1,4 +1,4 @@
-module FormattedText exposing (FormattedText, Range, addRange, all, any, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing (FormattedText, Range, addRange, all, any, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trees, trim, trimLeft, trimRight, unchunk, uncons, words)
 
 {-| A type representing text with formatting.
 
@@ -19,6 +19,7 @@ module FormattedText exposing (FormattedText, Range, addRange, all, any, append,
 
 @docs text
 @docs chunks
+@docs trees
 
 
 ## String-like operations for FormattedText
@@ -84,6 +85,7 @@ If you feel the need to do this, please create an issue on our Github repo with 
 import FormattedText.Internal as Internal
 import FormattedText.Regex
 import FormattedText.Shared as Shared
+import FormattedText.Tree
 import Regex exposing (Regex)
 
 
@@ -794,3 +796,12 @@ unchunk chunks =
     chunks
         |> List.map formatChunk
         |> concat
+
+
+{-| Certain operations, like rendering to Html, can be hard to perform with FormattedText directly.
+`trees` creates a markup tree from a FormattedText.
+You can pass it a function for generating a text leaf of the tree, and a function to generate a markup node of the tree.
+-}
+trees : (String -> tree) -> (markup -> List tree -> tree) -> FormattedText markup -> List tree
+trees =
+    FormattedText.Tree.trees
