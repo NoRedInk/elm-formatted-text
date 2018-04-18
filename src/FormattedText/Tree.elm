@@ -2,6 +2,14 @@ module FormattedText.Tree exposing (..)
 
 import AllenAlgebra
 import FormattedText.Internal as Internal exposing (FormattedText)
+import Parser
+
+
+trees : (String -> tree) -> (markup -> List tree -> tree) -> FormattedText markup -> List tree
+trees leaf node formatted =
+    rangeForest formatted
+        |> toParser { leaf = leaf, node = node }
+        |> Parser.parse (Internal.text formatted)
 
 
 type Tree a
@@ -126,9 +134,10 @@ splitOn n range =
     )
 
 
-trees : (String -> tree) -> (markup -> List tree -> tree) -> FormattedText markup -> List tree
-trees leaf node formatted =
-    Debug.crash "TODO"
+type alias TreeBuilder markup tree =
+    { leaf : String -> tree
+    , node : markup -> List tree -> tree
+    }
 
 
 rangeForest : FormattedText markup -> Forest (Range markup)
@@ -136,3 +145,62 @@ rangeForest formatted =
     Internal.ranges formatted
         |> List.map (\range -> Tree range [])
         |> List.foldl addTree []
+
+
+toParser : TreeBuilder markup tree -> Forest (Range markup) -> Parser.Parser tree
+toParser treeBuilder forest =
+    toParser_ treeBuilder 0 forest
+        |> Tuple.second
+
+
+toParser_ : TreeBuilder markup tree -> Int -> Forest (Range markup) -> ( Int, Parser.Parser tree )
+toParser_ treeBuilder offset forest =
+    mapAccumL (bitesForRange treeBuilder) offset forest
+        |> Tuple.mapSecond
+            (\nestedBites ->
+                { bites = List.concatMap identity nestedBites
+                , digestRemainder = treeBuilder.leaf
+                }
+            )
+
+
+bitesForRange : TreeBuilder markup tree -> Tree (Range markup) -> Int -> ( Int, List (Parser.Bite tree) )
+bitesForRange treeBuilder (Tree range children) offset =
+    ( range.end
+    , List.filterMap identity
+        [ case range.start - offset of
+            0 ->
+                Nothing
+
+            chars ->
+                Just
+                    { chars = chars
+                    , digest = treeBuilder.leaf
+                    }
+        , Just
+            { chars = range.end - range.start
+            , digest = digestNode treeBuilder (Tree range children)
+            }
+        ]
+    )
+
+
+digestNode : TreeBuilder markup tree -> Tree (Range markup) -> String -> tree
+digestNode treeBuilder (Tree range children) string =
+    toParser_ treeBuilder range.start children
+        |> Tuple.second
+        |> Parser.parse string
+        |> treeBuilder.node range.tag
+
+
+mapAccumL : (a -> c -> ( c, b )) -> c -> List a -> ( c, List b )
+mapAccumL mapFn init xs =
+    let
+        go : a -> ( c, List b ) -> ( c, List b )
+        go x ( acc, ys ) =
+            case mapFn x acc of
+                ( newAcc, y ) ->
+                    ( newAcc, y :: ys )
+    in
+    List.foldl go ( init, [] ) xs
+        |> Tuple.mapSecond List.reverse
