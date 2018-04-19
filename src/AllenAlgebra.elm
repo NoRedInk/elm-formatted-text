@@ -32,14 +32,17 @@ relation range1 range2 =
         , compare (upper range1) (upper range2)
         )
     of
+        ( EQ, _, _, EQ ) ->
+            Equal
+
         ( _, _, LT, _ ) ->
             Before
 
-        ( _, _, EQ, _ ) ->
-            Meets
-
         ( _, GT, _, _ ) ->
             After
+
+        ( _, _, EQ, _ ) ->
+            Meets
 
         ( _, EQ, _, _ ) ->
             MeetsInverse
@@ -67,9 +70,6 @@ relation range1 range2 =
 
         ( GT, _, _, GT ) ->
             OverlapsInverse
-
-        ( EQ, _, _, EQ ) ->
-            Equal
 
 
 {-| Return the lower bound of a range. Naming implies this should be 'start',
