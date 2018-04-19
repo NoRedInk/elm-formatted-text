@@ -706,7 +706,7 @@ repetitiveFTextElement =
 assertPartAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
 assertPartAt part whole index =
     FT.slice index (index + FT.length part) whole
-        |> Expect.equal part
+        |> equals part
 
 
 assertPartNotAt : FormattedText Markup -> FormattedText Markup -> Int -> Expectation
