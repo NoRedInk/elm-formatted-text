@@ -95,7 +95,7 @@ addTree (Tree newRange newChildren) forest =
                     Tree newRange (addTree (Tree headRange headChildren) newChildren) :: rest
 
                 Contains ->
-                    Tree newRange (addTree (Tree headRange headChildren) newChildren) :: rest
+                    addTree (Tree newRange (addTree (Tree headRange headChildren) newChildren)) rest
 
                 During ->
                     Tree headRange (addTree (Tree newRange newChildren) headChildren) :: rest

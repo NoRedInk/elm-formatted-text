@@ -28,7 +28,7 @@ suite =
                         |> Tuple.second
                         |> Expect.equal (List.range 1 (List.length units))
             ]
-        , test "creates nice tree for nested markup" <|
+        , test "creates the correct tree for nested markup (1)" <|
             \_ ->
                 FT.concat
                     [ FT.fromString "Nest "
@@ -43,6 +43,22 @@ suite =
                     |> FormattedText.Tree.trees identity toXmlNode
                     |> String.concat
                     |> Expect.equal "Nest <red><yellow>Yellow</yellow> inside of Red</red>."
+        , test "creates the correct tree for nested markup (2)" <|
+            \_ ->
+                FT.concat
+                    [ FT.concat
+                        [ FT.fromString "a"
+                            |> FT.formatAll FormattedText.Fuzz.Yellow
+                        , FT.fromString "b"
+                        , FT.fromString "c"
+                            |> FT.formatAll FormattedText.Fuzz.Yellow
+                        ]
+                        |> FT.formatAll FormattedText.Fuzz.Red
+                    , FT.fromString "d"
+                    ]
+                    |> FormattedText.Tree.trees identity toXmlNode
+                    |> String.concat
+                    |> Expect.equal "<red><yellow>a</yellow>b<yellow>c</yellow></red>d"
         , fuzz FormattedText.Fuzz.formattedText "trees and fromTrees are duals" <|
             \formatted ->
                 FormattedText.Tree.trees Leaf Node formatted
