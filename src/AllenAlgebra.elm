@@ -23,13 +23,13 @@ type AllenRelation
     | Equal
 
 
-relation : { r | start : Int, end : Int } -> { p | start : Int, end : Int } -> AllenRelation
+relation : { r | start : comparable, end : comparable } -> { p | start : comparable, end : comparable } -> AllenRelation
 relation range1 range2 =
     case
-        ( compare range1.start range2.start
-        , compare range1.start range2.end
-        , compare range1.end range2.start
-        , compare range1.end range2.end
+        ( compare (lower range1) (lower range2)
+        , compare (lower range1) (upper range2)
+        , compare (upper range1) (lower range2)
+        , compare (upper range1) (upper range2)
         )
     of
         ( _, _, LT, _ ) ->
@@ -70,3 +70,19 @@ relation range1 range2 =
 
         ( EQ, _, _, EQ ) ->
             Equal
+
+
+{-| Return the lower bound of a range. Naming implies this should be 'start',
+but lets make sure.
+-}
+lower : { r | start : comparable, end : comparable } -> comparable
+lower { start, end } =
+    min start end
+
+
+{-| Return the upper bound of a range. Naming implies this should be 'start',
+but lets make sure.
+-}
+upper : { r | start : comparable, end : comparable } -> comparable
+upper { start, end } =
+    max start end
