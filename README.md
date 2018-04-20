@@ -14,32 +14,24 @@ Anything you can do with Strings you can do with FormattedText too,
 because this lib comes with equivalents of all functions from the core String and Regex modules.
 
 ## Rendering FormattedText
-The easiest way to render `FormattedText` into Html is using the `chunks` function, which splits your FormattedText into ranges with equal formatting.
+The easiest way to render `FormattedText` into Html is using the `trees` function, which builds a markup tree from your `FormattedText`.
 
 ```elm
 import FormattedText exposing (..)
-import Css exposing (..)
+import Html exposing (Html)
 
-type Markup = Red | Bold
-
-css : String
-    (stylesheet << namespace "myapp")
-    [ class Red
-        [ color (hex "FF0000") ]
-    , class Bold
-        [ fontWeight bold ]
-    ]
+type Markup = Bold | Italic
 
 view : FormattedText Markup -> Html msg
 view formattedText =
-    Html.p [] (chunks viewChunk formattedText)
+    Html.p [] (trees Html.text viewMarkup)
 
-viewChunk : String -> List Markup -> Html msg
-viewChunk text markups =
-    if List.isEmpty markups then
-        Html.text text
-    else
-        Html.span
-            [ Css.class markups ]
-            [ Html.text ]
+viewMarkup : Markup -> List (Html msg) -> Html msg
+viewMarkup markup children =
+    case markup of
+        Bold ->
+            Html.strong [] children
+
+        Italic ->
+            Html.i [] children
 ```
