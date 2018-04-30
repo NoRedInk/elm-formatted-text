@@ -64,6 +64,18 @@ suite =
                 FormattedText.Tree.trees Leaf Node formatted
                     |> fromTrees
                     |> FormattedText.Fuzz.equals formatted
+        , test "trees and fromTrees are duals (known hard case)" <|
+            \_ ->
+                let
+                    formatted =
+                        FT.fromString "abcd"
+                            |> FT.addRange { tag = FormattedText.Fuzz.Red, start = 1, end = 3 }
+                            |> FT.addRange { tag = FormattedText.Fuzz.Green, start = 1, end = 3 }
+                            |> FT.addRange { tag = FormattedText.Fuzz.Blue, start = 0, end = 2 }
+                in
+                FormattedText.Tree.trees Leaf Node formatted
+                    |> fromTrees
+                    |> FormattedText.Fuzz.equals formatted
         ]
 
 
