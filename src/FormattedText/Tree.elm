@@ -112,8 +112,7 @@ addTree (Tree newRange newChildren) forest =
                             splitOn headRange.start newRange
                     in
                     Tree outsideHead []
-                        :: Tree headRange (addTree (Tree insideHead []) headChildren)
-                        :: rest
+                        :: addTree (Tree headRange (addTree (Tree insideHead []) headChildren)) rest
                         |> (\newForest -> List.foldl addTree newForest newChildren)
 
                 OverlapsRight ->
@@ -122,8 +121,7 @@ addTree (Tree newRange newChildren) forest =
                             splitOn headRange.end newRange
                     in
                     Tree headRange (addTree (Tree insideHead []) headChildren)
-                        :: Tree outsideHead []
-                        :: rest
+                        :: addTree (Tree outsideHead []) rest
                         |> (\newForest -> List.foldl addTree newForest newChildren)
 
 
