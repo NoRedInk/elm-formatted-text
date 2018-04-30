@@ -20,7 +20,12 @@ type alias Bite output =
 parse : String -> Parser output -> List output
 parse text parser =
     List.foldl takeBite ( [], text ) parser.bites
-        |> (\( result, remainder ) -> parser.digestRemainder remainder :: result)
+        |> (\( result, remainder ) ->
+                if remainder == "" then
+                    result
+                else
+                    parser.digestRemainder remainder :: result
+           )
         |> List.reverse
 
 
