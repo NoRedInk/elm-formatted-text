@@ -47,7 +47,9 @@ parseThenView =
 markdownList : String
 markdownList =
     """* this
-  * is nested"""
+  * is nested
+  * foo
+* bar"""
 
 
 
@@ -64,12 +66,17 @@ parseList =
                     [ UnOrderedList
                         [ [ PlainInline
                                 (FormattedText.fromString "this")
-                          ]
-                        , [ UnOrderedList
+                          , UnOrderedList
                                 [ [ PlainInline
                                         (FormattedText.fromString "is nested")
                                   ]
+                                , [ PlainInline
+                                        (FormattedText.fromString "foo")
+                                  ]
                                 ]
+                          ]
+                        , [ PlainInline
+                                (FormattedText.fromString "bar")
                           ]
                         ]
                     ]
