@@ -214,7 +214,7 @@ parseBlock block =
                 |> List.singleton
 
         Markdown.Block.List { type_ } items ->
-            List.concatMap (List.map parseBlock) items
+            List.map (List.concatMap parseBlock) items
                 |> (case type_ of
                         Markdown.Block.Unordered ->
                             UnOrderedList
