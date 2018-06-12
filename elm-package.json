@@ -1,5 +1,5 @@
 {
-    "version": "2.3.3",
+    "version": "2.3.4",
     "summary": "A type for representing formatted text",
     "repository": "https://github.com/NoRedInk/elm-formatted-text.git",
     "license": "BSD3",
