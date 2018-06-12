@@ -1,8 +1,14 @@
-module Spec.FormattedText.Markdown exposing (parseInlineThenViewInline, parseThenView)
+module Spec.FormattedText.Markdown
+    exposing
+        ( parseInlineThenViewInline
+        , parseList
+        , parseThenView
+        )
 
 import Expect
-import FormattedText.Markdown as Markdown
-import Html exposing (a, code, em, h1, p, strong, text)
+import FormattedText
+import FormattedText.Markdown as Markdown exposing (..)
+import Html exposing (a, code, em, h1, li, p, strong, text, ul)
 import Html.Attributes exposing (href)
 import Test exposing (..)
 
@@ -34,6 +40,44 @@ parseThenView =
                         , a [ href "https://en.wikipedia.org/wiki/Markdown" ] [ text "markdown" ]
                         , text " "
                         , code [] [ text "code" ]
+                        ]
+                    ]
+
+
+markdownList : String
+markdownList =
+    """* this
+  * is nested
+  * foo
+* bar"""
+
+
+
+-- * is nested
+
+
+parseList : Test
+parseList =
+    test "parse list" <|
+        \_ ->
+            markdownList
+                |> Markdown.parse
+                |> Expect.equal
+                    [ UnOrderedList
+                        [ [ PlainInline
+                                (FormattedText.fromString "this")
+                          , UnOrderedList
+                                [ [ PlainInline
+                                        (FormattedText.fromString "is nested")
+                                  ]
+                                , [ PlainInline
+                                        (FormattedText.fromString "foo")
+                                  ]
+                                ]
+                          ]
+                        , [ PlainInline
+                                (FormattedText.fromString "bar")
+                          ]
                         ]
                     ]
 
