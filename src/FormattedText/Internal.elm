@@ -1,4 +1,4 @@
-module FormattedText.Internal exposing (FormattedText, addRange, compareRanges, equal, equalRanges, fromString, overlap, ranges, text)
+module FormattedText.Internal exposing (FormattedText, addRange, equal, equalRanges, fromString, overlap, ranges, text)
 
 {-| These types and functions are pulled from `Nri.FormattedText` to ensure constraints on the `FormattedText` type are always kept.
 -}
@@ -133,7 +133,6 @@ equalRanges rangesA rangesB =
     sortRanges rangesA == sortRanges rangesB
 
 
-{-| -}
 compareRanges : List (Range tag) -> List (Range tag) -> Range tag -> Range tag -> Order
 compareRanges rangesA rangesB =
     let
