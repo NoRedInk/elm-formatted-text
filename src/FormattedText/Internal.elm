@@ -1,4 +1,4 @@
-module FormattedText.Internal exposing (FormattedText, addRange, compareRanges, equal, fromString, overlap, ranges, text)
+module FormattedText.Internal exposing (FormattedText, addRange, compareRanges, equal, equalRanges, fromString, overlap, ranges, text)
 
 {-| These types and functions are pulled from `Nri.FormattedText` to ensure constraints on the `FormattedText` type are always kept.
 -}
@@ -113,17 +113,24 @@ equal formattedA formattedB =
 
         rangesEqual : Bool
         rangesEqual =
-            sortRanges (ranges formattedA) == sortRanges (ranges formattedB)
-
-        sortRanges : List (Range markup) -> List (Range markup)
-        sortRanges ranges =
-            List.sortWith order ranges
-
-        order : Range markup -> Range markup -> Order
-        order =
-            compareRanges (ranges formattedA) (ranges formattedB)
+            equalRanges (ranges formattedA) (ranges formattedB)
     in
     textEqual && rangesEqual
+
+
+{-| -}
+equalRanges : List (Range tag) -> List (Range tag) -> Bool
+equalRanges rangesA rangesB =
+    let
+        order : Range tag -> Range tag -> Order
+        order =
+            compareRanges rangesA rangesB
+
+        sortRanges : List (Range tag) -> List (Range tag)
+        sortRanges ranges =
+            List.sortWith order ranges
+    in
+    sortRanges rangesA == sortRanges rangesB
 
 
 {-| -}
