@@ -12,7 +12,6 @@ This can be used to test code that makes use of FormattedText.
 
 -}
 
-import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
