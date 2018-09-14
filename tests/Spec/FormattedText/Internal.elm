@@ -55,6 +55,7 @@ overlapTests =
 type Tag
     = First
     | Second
+    | Third
 
 
 equalTests : Test
@@ -73,7 +74,7 @@ equalTests =
             [ range First 0 4, range First 6 8 ]
 
         rangesA2 =
-            [ range First 1 2, range First 3 5 ]
+            [ range First 1 2, range First 3 5, range Third 2 3 ]
 
         rangesB1 =
             [ range Second 0 4, range Second 6 8 ]
