@@ -414,7 +414,7 @@ indexes part whole =
     in
     String.indexes (text part) (text whole)
         -- We found all matching substrings, but they might have different formatting.
-        |> List.filter (partAtIndex >> equal part)
+        |> List.filter (partAtIndex >> Internal.equal part)
 
 
 {-| Alias of `indexes`.
@@ -442,7 +442,7 @@ Equivalent of `String.startsWith`.
 -}
 startsWith : FormattedText markup -> FormattedText markup -> Bool
 startsWith start whole =
-    equal start (left (length start) whole)
+    Internal.equal start (left (length start) whole)
 
 
 {-| Check if a FormattedText end with a sub-FormattedText.
@@ -451,31 +451,7 @@ Equivalent of `String.endsWith`.
 -}
 endsWith : FormattedText markup -> FormattedText markup -> Bool
 endsWith end whole =
-    equal end (right (length end) whole)
-
-
-equal : FormattedText markup -> FormattedText markup -> Bool
-equal formattedA formattedB =
-    let
-        textEqual : Bool
-        textEqual =
-            text formattedA == text formattedB
-
-        rangesEqual : Bool
-        rangesEqual =
-            sortRanges (ranges formattedA) == sortRanges (ranges formattedB)
-
-        sortRanges : List (Range markup) -> List (Range markup)
-        sortRanges ranges =
-            List.sortBy hashRange ranges
-
-        hashRange : Range markup -> String
-        hashRange { start, end, tag } =
-            -- Because we have no information about what tag might be,
-            -- stringifying it is our only resort for allowing us to compare it.
-            toString ( start, end, tag )
-    in
-    textEqual && rangesEqual
+    Internal.equal end (right (length end) whole)
 
 
 {-| Parse the FormattedText as an Int.

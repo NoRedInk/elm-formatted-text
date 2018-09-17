@@ -12,10 +12,10 @@ This can be used to test code that makes use of FormattedText.
 
 -}
 
-import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
+import FormattedText.Internal as Internal
 import Fuzz exposing (..)
 
 
@@ -133,18 +133,5 @@ Use this in tests for running assertions against your formatted text.
 -}
 equals : EqualCheck (FormattedText markup)
 equals formattedA formattedB =
-    formattedB
-        |> Expect.all
-            [ FT.ranges >> equalRanges (FT.ranges formattedA)
-            , FT.text >> Expect.equal (FT.text formattedA)
-            ]
-
-
-equalRanges : EqualCheck (List (Range markup))
-equalRanges rangesA rangesB =
-    let
-        orderRanges : Compare.Comparator (Range markup)
-        orderRanges =
-            Compare.concat [ Compare.by .start, Compare.by (.tag >> toString) ]
-    in
-    EqualCheck.listContents orderRanges rangesA rangesB
+    Internal.equal formattedA formattedB
+        |> Expect.true "Expected the formatted text to be the same."

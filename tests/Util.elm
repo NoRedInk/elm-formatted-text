@@ -6,10 +6,10 @@ Some of these methods might fit nicely into libraries.
 
 -}
 
-import Compare
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
+import FormattedText.Internal as Internal
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 
 
@@ -25,12 +25,8 @@ just expectation maybe =
 
 equalRanges : EqualCheck (List (Range markup))
 equalRanges rangesA rangesB =
-    let
-        orderRanges : Compare.Comparator (Range markup)
-        orderRanges =
-            Compare.concat [ Compare.by .start, Compare.by (.tag >> toString) ]
-    in
-    EqualCheck.listContents orderRanges rangesA rangesB
+    Internal.equalRanges rangesA rangesB
+        |> Expect.true "Expected ranges to be true."
 
 
 rangesDontOverlap : List (Range markup) -> Expectation
