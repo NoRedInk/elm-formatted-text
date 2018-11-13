@@ -24,21 +24,21 @@ type alias Range tag =
 
 {-| -}
 fromString : String -> FormattedText tag
-fromString text =
-    FormattedText text []
+fromString text_ =
+    FormattedText text_ []
 
 
 {-| Remove all range returning only the content.
 -}
 text : FormattedText tag -> String
-text (FormattedText text _) =
-    text
+text (FormattedText text_ _) =
+    text_
 
 
 {-| Only one to add a range to formatted text. The range is added in a way that observes the constraints listed under the type.
 -}
 addRange : Range tag -> FormattedText tag -> FormattedText tag
-addRange { tag, start, end } (FormattedText text ranges) =
+addRange { tag, start, end } (FormattedText text_ ranges_) =
     let
         newRange : Range tag
         newRange =
@@ -49,7 +49,7 @@ addRange { tag, start, end } (FormattedText text ranges) =
 
         withinString : Int -> Int
         withinString =
-            atLeast 0 >> atMost (String.length text)
+            atLeast 0 >> atMost (String.length text_)
 
         atLeast : Int -> Int -> Int
         atLeast =
@@ -60,11 +60,11 @@ addRange { tag, start, end } (FormattedText text ranges) =
             min
 
         empty : Range tag -> Bool
-        empty { start, end } =
-            start == end
+        empty range =
+            range.start == range.end
 
         ( overlapping, nonOverlapping ) =
-            List.partition (overlap newRange) ranges
+            List.partition (overlap newRange) ranges_
 
         mergedOverlap =
             { tag = newRange.tag
@@ -80,7 +80,7 @@ addRange { tag, start, end } (FormattedText text ranges) =
     in
     (mergedOverlap :: nonOverlapping)
         |> List.filter (not << empty)
-        |> FormattedText text
+        |> FormattedText text_
 
 
 {-| Check if two ranges overlap. Exported for testing purposes.
@@ -99,8 +99,8 @@ overlap a b =
 
 {-| -}
 ranges : FormattedText tag -> List (Range tag)
-ranges (FormattedText _ ranges) =
-    ranges
+ranges (FormattedText _ ranges_) =
+    ranges_
 
 
 {-| -}
@@ -127,8 +127,8 @@ equalRanges rangesA rangesB =
             compareRanges rangesA rangesB
 
         sortRanges : List (Range tag) -> List (Range tag)
-        sortRanges ranges =
-            List.sortWith order ranges
+        sortRanges ranges_ =
+            List.sortWith order ranges_
     in
     sortRanges rangesA == sortRanges rangesB
 
@@ -140,7 +140,7 @@ compareRanges rangesA rangesB =
         tagOrders =
             (rangesA ++ rangesB)
                 |> List.foldl onlyUnique []
-                |> List.indexedMap (,)
+                |> List.indexedMap Tuple.pair
 
         onlyUnique : Range tag -> List tag -> List tag
         onlyUnique range unique =

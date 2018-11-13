@@ -1,0 +1,21 @@
+{
+    "type": "package",
+    "name": "NoRedInk/elm-formatted-text",
+    "summary": "A type for representing formatted text",
+    "license": "BSD-3-Clause",
+    "version": "2.3.5",
+    "exposed-modules": [
+        "FormattedText",
+        "FormattedText.Regex",
+        "FormattedText.Markdown"
+    ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {
+        "NoRedInk/elm-compare": "2.0.0 <= v < 3.0.0",
+        "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/html": "1.0.0 <= v < 2.0.0",
+        "elm/regex": "1.0.0 <= v < 2.0.0",
+        "pablohirafuji/elm-markdown": "2.0.5 <= v < 3.0.0"
+    },
+    "test-dependencies": {}
+}
