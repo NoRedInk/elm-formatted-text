@@ -8,6 +8,7 @@ module FormattedText exposing
     , trees
     , all
     , any
+    , equal
     , append
     , concat
     , cons
@@ -80,6 +81,7 @@ module FormattedText exposing
 
 @docs all
 @docs any
+@docs equal
 @docs append
 @docs concat
 @docs cons
@@ -510,6 +512,13 @@ Equivalent of `String.endsWith`.
 endsWith : FormattedText markup -> FormattedText markup -> Bool
 endsWith end whole =
     Internal.equal end (right (length end) whole)
+
+
+{-| Are two FormattedText the exact same?
+-}
+equal : FormattedText markup -> FormattedText markup -> Bool
+equal =
+    Internal.equal
 
 
 {-| Parse the FormattedText as an Int.
