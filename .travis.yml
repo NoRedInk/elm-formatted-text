@@ -21,7 +21,6 @@ install:
   - mv $(npm config get prefix)/bin/elm $(npm config get prefix)/bin/elm-old
   - printf '%s\n\n' '#!/bin/bash' 'echo "Running elm with sysconfcpus -n 2"' '$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 elm-old "$@"' > $(npm config get prefix)/bin/elm
   - chmod +x $(npm config get prefix)/bin/elm
-  - travis_retry elm install
 
 script:
   # Check if all exposed modules compile.
