@@ -1,4 +1,4 @@
-module AllenAlgebra exposing (..)
+module AllenAlgebra exposing (AllenRelation(..), lower, relation, upper)
 
 {-| The relations defined by an allen algebra.
 
@@ -26,50 +26,57 @@ type AllenRelation
 relation : { r | start : comparable, end : comparable } -> { p | start : comparable, end : comparable } -> AllenRelation
 relation range1 range2 =
     case
-        ( compare (lower range1) (lower range2)
+        [ compare (lower range1) (lower range2)
         , compare (lower range1) (upper range2)
         , compare (upper range1) (lower range2)
         , compare (upper range1) (upper range2)
-        )
+        ]
     of
-        ( EQ, _, _, EQ ) ->
+        [ EQ, _, _, EQ ] ->
             Equal
 
-        ( _, _, LT, _ ) ->
+        [ _, _, LT, _ ] ->
             Before
 
-        ( _, GT, _, _ ) ->
+        [ _, GT, _, _ ] ->
             After
 
-        ( _, _, EQ, _ ) ->
+        [ _, _, EQ, _ ] ->
             Meets
 
-        ( _, EQ, _, _ ) ->
+        [ _, EQ, _, _ ] ->
             MeetsInverse
 
-        ( GT, _, _, LT ) ->
+        [ GT, _, _, LT ] ->
             During
 
-        ( EQ, _, _, LT ) ->
+        [ EQ, _, _, LT ] ->
             Starts
 
-        ( GT, _, _, EQ ) ->
+        [ GT, _, _, EQ ] ->
             Finishes
 
-        ( LT, _, _, GT ) ->
+        [ LT, _, _, GT ] ->
             DuringInverse
 
-        ( EQ, _, _, GT ) ->
+        [ EQ, _, _, GT ] ->
             StartsInverse
 
-        ( LT, _, _, EQ ) ->
+        [ LT, _, _, EQ ] ->
             FinishesInverse
 
-        ( LT, _, _, LT ) ->
+        [ LT, _, _, LT ] ->
             Overlaps
 
-        ( GT, _, _, GT ) ->
+        [ GT, _, _, GT ] ->
             OverlapsInverse
+
+        _ ->
+            Equal
+
+
+
+-- Never happens
 
 
 {-| Return the lower bound of a range. Naming implies this should be 'start',

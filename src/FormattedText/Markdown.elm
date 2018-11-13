@@ -1,4 +1,11 @@
-module FormattedText.Markdown exposing (Block(..), Markdown(..), parse, parseInline, view, viewInline)
+module FormattedText.Markdown exposing
+    ( Markdown(..)
+    , Block(..)
+    , parse
+    , parseInline
+    , view
+    , viewInline
+    )
 
 {-| A specific FormattedText type for inline markdown.
 

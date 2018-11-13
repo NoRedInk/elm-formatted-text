@@ -1,4 +1,4 @@
-module FormattedText.Shared exposing (..)
+module FormattedText.Shared exposing (Range, append, concat, dropLeft, dropRight, empty, formattedText, left, length, right, shift, slice)
 
 {-| Functions extracted from the `FormattedText` module to break a circular dependency between it and `FormattedText.Regex`.
 -}
@@ -94,6 +94,7 @@ slice start end formatted =
         fixBound n =
             if n < 0 then
                 ln + n
+
             else
                 n
 

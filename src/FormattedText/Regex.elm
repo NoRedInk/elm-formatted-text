@@ -1,4 +1,10 @@
-module FormattedText.Regex exposing (Match, contains, find, replace, split)
+module FormattedText.Regex exposing
+    ( Match
+    , contains
+    , find
+    , replace
+    , split
+    )
 
 {-| Regex operations for FormattedText
 
@@ -31,10 +37,10 @@ type alias Match markup =
 {-| Find regex matches in a FormattedText.
 This is the equivalent of `Regex.find`.
 -}
-find : Regex.HowMany -> Regex -> FormattedText markup -> List (Match markup)
-find howMany regex formatted =
+find : Regex -> FormattedText markup -> List (Match markup)
+find regex formatted =
     text formatted
-        |> Regex.find howMany regex
+        |> Regex.find regex
         |> List.map (fromStringMatch formatted)
 
 
@@ -50,20 +56,19 @@ fromStringMatch fullFormatted { match, index, number } =
 This is the equivalent of `Regex.replace`.
 -}
 replace :
-    Regex.HowMany
-    -> Regex
+    Regex
     -> (Match markup -> FormattedText markup)
     -> FormattedText markup
     -> FormattedText markup
-replace howMany regex replacer formatted =
+replace regex replacer formatted =
     let
         replaceMatch : Match markup -> FormattedText markup -> FormattedText markup
-        replaceMatch match formatted =
-            case splitAround match formatted of
+        replaceMatch match formatted_ =
+            case splitAround match formatted_ of
                 ( before, after ) ->
                     concat [ before, replacer match, after ]
     in
-    find howMany regex formatted
+    find regex formatted
         -- It's important to fold from the right here.
         -- Each replacement potentially changes the length of the text,
         -- affecting indexes of other matches to the right.
@@ -74,8 +79,8 @@ replace howMany regex replacer formatted =
 {-| Split a FormattedText on matches with a regex.
 This is the equivalent of `Regex.split`.
 -}
-split : Regex.HowMany -> Regex -> FormattedText markup -> List (FormattedText markup)
-split howMany regex formatted =
+split : Regex -> FormattedText markup -> List (FormattedText markup)
+split regex formatted =
     let
         splitAroundMatch :
             Match markup
@@ -85,22 +90,8 @@ split howMany regex formatted =
             case splitAround match remaining of
                 ( before, after ) ->
                     ( before, after :: chunks )
-
-        -- `Regex.split` treats negative `AtMost` values as `All`, `Regex.find` treats them as `AtMost 0.
-        -- Because we want to implement the `split behaviour` using `find` we need to transform.
-        fixedHowMany : Regex.HowMany
-        fixedHowMany =
-            case howMany of
-                Regex.All ->
-                    howMany
-
-                Regex.AtMost n ->
-                    if n < 0 then
-                        Regex.All
-                    else
-                        howMany
     in
-    find fixedHowMany regex formatted
+    find regex formatted
         -- It's important to fold from the right here.
         -- By chopping of chunks from the right side,
         -- the indexes of other matches to the left remain valid.

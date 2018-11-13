@@ -1,4 +1,59 @@
-module FormattedText exposing (FormattedText, Range, addRange, all, any, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trees, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing
+    ( FormattedText
+    , fromString
+    , unchunk
+    , formatAll
+    , text
+    , chunks
+    , trees
+    , all
+    , any
+    , equal
+    , append
+    , concat
+    , cons
+    , contains
+    , dropLeft
+    , dropRight
+    , empty
+    , endsWith
+    , filter
+    , foldl
+    , foldr
+    , fromChar
+    , fromList
+    , indexes
+    , indices
+    , isEmpty
+    , join
+    , left
+    , length
+    , lines
+    , map
+    , pad
+    , padLeft
+    , padRight
+    , repeat
+    , reverse
+    , right
+    , slice
+    , split
+    , startsWith
+    , toFloat
+    , toInt
+    , toList
+    , toLower
+    , toUpper
+    , trim
+    , trimLeft
+    , trimRight
+    , uncons
+    , words
+    , Range
+    , formattedText
+    , addRange
+    , ranges
+    )
 
 {-| A type representing text with formatting.
 
@@ -26,6 +81,7 @@ module FormattedText exposing (FormattedText, Range, addRange, all, any, append,
 
 @docs all
 @docs any
+@docs equal
 @docs append
 @docs concat
 @docs cons
@@ -250,18 +306,20 @@ Markup of all characters on the FormattedText will be preserved.
 split : String -> FormattedText markup -> List (FormattedText markup)
 split splitter formatted =
     let
-        indices : List Int
-        indices =
+        indices_ : List Int
+        indices_ =
             if splitter == "" then
                 List.range 0 (length formatted - 1)
+
             else
                 String.indices splitter (text formatted)
     in
-    indices
+    indices_
         |> List.foldr (splitHelper <| String.length splitter) ( [], formatted )
         |> (\( splits, remainder ) ->
                 if String.isEmpty splitter then
                     splits
+
                 else
                     remainder :: splits
            )
@@ -347,10 +405,11 @@ lines formatted =
 -}
 words : FormattedText markup -> List (FormattedText markup)
 words formatted =
-    FormattedText.Regex.split
-        Regex.All
-        (Regex.regex "\\s+")
-        (trim formatted)
+    let
+        regex =
+            Maybe.withDefault Regex.never (Regex.fromString "\\s+")
+    in
+    FormattedText.Regex.split regex (trim formatted)
 
 
 {-| Trim whitespace from both ends of a FormattedText. The equivalent of `String.trim`.
@@ -364,22 +423,22 @@ trim =
 -}
 trimLeft : FormattedText markup -> FormattedText markup
 trimLeft formatted =
-    FormattedText.Regex.replace
-        (Regex.AtMost 1)
-        (Regex.regex "^\\s+")
-        (always empty)
-        formatted
+    let
+        regex =
+            Maybe.withDefault Regex.never (Regex.fromString "^\\s+")
+    in
+    FormattedText.Regex.replace regex (always empty) formatted
 
 
 {-| Trim whitespace from the right end of a FormattedText. The equivalent of `String.trimRight`.
 -}
 trimRight : FormattedText markup -> FormattedText markup
 trimRight formatted =
-    FormattedText.Regex.replace
-        (Regex.AtMost 1)
-        (Regex.regex "\\s+$")
-        (always empty)
-        formatted
+    let
+        regex =
+            Maybe.withDefault Regex.never (Regex.fromString "\\s+$")
+    in
+    FormattedText.Regex.replace regex (always empty) formatted
 
 
 {-| Create a FormattedText from a string and a list of markup ranges.
@@ -432,6 +491,7 @@ contains : FormattedText markup -> FormattedText markup -> Bool
 contains part whole =
     if isEmpty part then
         True
+
     else
         not <| List.isEmpty (indexes part whole)
 
@@ -454,11 +514,18 @@ endsWith end whole =
     Internal.equal end (right (length end) whole)
 
 
+{-| Are two FormattedText the exact same?
+-}
+equal : FormattedText markup -> FormattedText markup -> Bool
+equal =
+    Internal.equal
+
+
 {-| Parse the FormattedText as an Int.
 Markup has no effect on the result.
 The equivalent of `String.toInt`.
 -}
-toInt : FormattedText markup -> Result String Int
+toInt : FormattedText markup -> Maybe Int
 toInt formatted =
     String.toInt (text formatted)
 
@@ -467,7 +534,7 @@ toInt formatted =
 Markup has no effect on the result.
 The equivalent of `String.toInt`.
 -}
-toFloat : FormattedText markup -> Result String Float
+toFloat : FormattedText markup -> Maybe Float
 toFloat formatted =
     String.toFloat (text formatted)
 
@@ -674,13 +741,13 @@ type alias FoldState markup chunk =
 {-| Helper for the chunks function.
 -}
 rangeBounds : List (Range markup) -> List (ChunkSeperator markup)
-rangeBounds ranges =
+rangeBounds ranges_ =
     let
         forRange : Range markup -> List (ChunkSeperator markup)
         forRange { tag, start, end } =
             [ ( start, Start tag ), ( end, End tag ) ]
     in
-    ranges
+    ranges_
         |> List.concatMap forRange
         |> List.sortBy Tuple.first
 
@@ -703,23 +770,24 @@ chunks toChunk formatted =
             FoldState (Internal.text formatted) [] []
 
         addChunk : String -> List markup -> List chunk -> List chunk
-        addChunk text tags chunks =
-            if text == "" then
-                chunks
+        addChunk text_ tags chunks_ =
+            if text_ == "" then
+                chunks_
+
             else
-                toChunk text tags
-                    :: chunks
+                toChunk text_ tags
+                    :: chunks_
 
         splitOffRightMostChunk : ChunkSeperator markup -> FoldState markup chunk -> FoldState markup chunk
-        splitOffRightMostChunk ( position, rangeBoundary ) { text, openTags, chunks } =
+        splitOffRightMostChunk ( position, rangeBoundary ) foldState =
             let
                 chunkText : String
                 chunkText =
-                    String.dropLeft position text
+                    String.dropLeft position foldState.text
 
                 remainingText : String
                 remainingText =
-                    String.left position text
+                    String.left position foldState.text
 
                 newOpenTags : List markup
                 newOpenTags =
@@ -727,14 +795,14 @@ chunks toChunk formatted =
                         -- Because we're moving through the data right-to-left,
                         -- `End` means we're entering a range and `Start` means we're exiting one.
                         End tag ->
-                            tag :: openTags
+                            tag :: foldState.openTags
 
                         Start tag ->
-                            List.filter (not << (==) tag) openTags
+                            List.filter (not << (==) tag) foldState.openTags
 
                 newChunks : List chunk
                 newChunks =
-                    addChunk chunkText openTags chunks
+                    addChunk chunkText foldState.openTags foldState.chunks
             in
             FoldState remainingText newOpenTags newChunks
     in
@@ -757,19 +825,19 @@ chunks toChunk formatted =
     -}
     List.foldr splitOffRightMostChunk startFoldState startRangeBounds
         -- Create the last chunk with the final piece of unformatted text.
-        |> (\{ chunks, text } -> addChunk text [] chunks)
+        |> (\state -> addChunk state.text [] state.chunks)
 
 
 {-| Take a list of text chunks with formatting and turn them into formatted text.
 -}
 unchunk : List ( String, List markup ) -> FormattedText markup
-unchunk chunks =
+unchunk chunks_ =
     let
         formatChunk : ( String, List markup ) -> FormattedText markup
-        formatChunk ( text, tags ) =
-            List.foldr formatAll (Internal.fromString text) tags
+        formatChunk ( text_, tags ) =
+            List.foldr formatAll (Internal.fromString text_) tags
     in
-    chunks
+    chunks_
         |> List.map formatChunk
         |> concat
 
