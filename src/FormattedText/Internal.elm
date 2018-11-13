@@ -146,6 +146,7 @@ compareRanges rangesA rangesB =
         onlyUnique range unique =
             if List.member range.tag unique then
                 unique
+
             else
                 range.tag :: unique
 
@@ -162,16 +163,22 @@ compareRanges rangesA rangesB =
         ordering a b =
             if a.start < b.start then
                 LT
+
             else if a.start > b.start then
                 GT
+
             else if a.end < b.end then
                 LT
+
             else if a.end > b.end then
                 GT
+
             else if getTagOrder a.tag < getTagOrder b.tag then
                 LT
+
             else if getTagOrder a.tag > getTagOrder b.tag then
                 GT
+
             else
                 EQ
     in

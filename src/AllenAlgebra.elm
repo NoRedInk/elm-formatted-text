@@ -1,4 +1,4 @@
-module AllenAlgebra exposing (..)
+module AllenAlgebra exposing (AllenRelation(..), lower, relation, upper)
 
 {-| The relations defined by an allen algebra.
 

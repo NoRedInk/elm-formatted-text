@@ -1,4 +1,10 @@
-module FormattedText.Regex exposing (Match, contains, find, replace, split)
+module FormattedText.Regex exposing
+    ( Match
+    , contains
+    , find
+    , replace
+    , split
+    )
 
 {-| Regex operations for FormattedText
 
@@ -97,6 +103,7 @@ split howMany regex formatted =
                 Regex.AtMost n ->
                     if n < 0 then
                         Regex.All
+
                     else
                         howMany
     in

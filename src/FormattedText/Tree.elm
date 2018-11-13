@@ -1,4 +1,4 @@
-module FormattedText.Tree exposing (..)
+module FormattedText.Tree exposing (Forest, Range, RangeRelation(..), Tree(..), TreeBuilder, addTree, bitesForRange, digestNode, mapAccumL, rangeForest, relation, splitOn, toParser, toParser_, trees)
 
 import AllenAlgebra
 import FormattedText.Internal as Internal exposing (FormattedText)

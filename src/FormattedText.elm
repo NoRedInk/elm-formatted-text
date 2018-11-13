@@ -1,4 +1,58 @@
-module FormattedText exposing (FormattedText, Range, addRange, all, any, append, chunks, concat, cons, contains, dropLeft, dropRight, empty, endsWith, filter, foldl, foldr, formatAll, formattedText, fromChar, fromList, fromString, indexes, indices, isEmpty, join, left, length, lines, map, pad, padLeft, padRight, ranges, repeat, reverse, right, slice, split, startsWith, text, toFloat, toInt, toList, toLower, toUpper, trees, trim, trimLeft, trimRight, unchunk, uncons, words)
+module FormattedText exposing
+    ( FormattedText
+    , fromString
+    , unchunk
+    , formatAll
+    , text
+    , chunks
+    , trees
+    , all
+    , any
+    , append
+    , concat
+    , cons
+    , contains
+    , dropLeft
+    , dropRight
+    , empty
+    , endsWith
+    , filter
+    , foldl
+    , foldr
+    , fromChar
+    , fromList
+    , indexes
+    , indices
+    , isEmpty
+    , join
+    , left
+    , length
+    , lines
+    , map
+    , pad
+    , padLeft
+    , padRight
+    , repeat
+    , reverse
+    , right
+    , slice
+    , split
+    , startsWith
+    , toFloat
+    , toInt
+    , toList
+    , toLower
+    , toUpper
+    , trim
+    , trimLeft
+    , trimRight
+    , uncons
+    , words
+    , Range
+    , formattedText
+    , addRange
+    , ranges
+    )
 
 {-| A type representing text with formatting.
 
@@ -254,6 +308,7 @@ split splitter formatted =
         indices =
             if splitter == "" then
                 List.range 0 (length formatted - 1)
+
             else
                 String.indices splitter (text formatted)
     in
@@ -262,6 +317,7 @@ split splitter formatted =
         |> (\( splits, remainder ) ->
                 if String.isEmpty splitter then
                     splits
+
                 else
                     remainder :: splits
            )
@@ -432,6 +488,7 @@ contains : FormattedText markup -> FormattedText markup -> Bool
 contains part whole =
     if isEmpty part then
         True
+
     else
         not <| List.isEmpty (indexes part whole)
 
@@ -706,6 +763,7 @@ chunks toChunk formatted =
         addChunk text tags chunks =
             if text == "" then
                 chunks
+
             else
                 toChunk text tags
                     :: chunks

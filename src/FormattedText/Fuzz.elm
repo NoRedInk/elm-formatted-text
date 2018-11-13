@@ -1,4 +1,10 @@
-module FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
+module FormattedText.Fuzz exposing
+    ( Markup(..)
+    , formattedText
+    , customFormattedText
+    , markup
+    , equals
+    )
 
 {-| Fuzzers of FormattedText types
 
@@ -98,6 +104,7 @@ protoRange markupFuzzer =
         safeMod n m =
             if m == 0 then
                 0
+
             else
                 n % m
     in

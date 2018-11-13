@@ -1,4 +1,4 @@
-module EqualCheck exposing (..)
+module EqualCheck exposing (EqualCheck, listContents, map, result)
 
 import Compare
 import Expect exposing (Expectation)

@@ -23,6 +23,7 @@ parse text parser =
         |> (\( result, remainder ) ->
                 if remainder == "" then
                     result
+
                 else
                     parser.digestRemainder remainder :: result
            )
