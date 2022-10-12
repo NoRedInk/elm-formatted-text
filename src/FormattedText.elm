@@ -398,7 +398,10 @@ slice =
 -}
 lines : FormattedText markup -> List (FormattedText markup)
 lines formatted =
-    split "\n" formatted
+    formatted
+        |> split "\n\r"
+        |> List.concatMap (split "\n")
+        |> List.concatMap (split "\r")
 
 
 {-| Split a FormattedText on whitespace. The equivalent of `String.words`.

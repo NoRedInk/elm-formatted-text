@@ -555,6 +555,11 @@ padLeft =
                     paddingLength =
                         upTo - FT.length formatted
 
+                    -- Not all characters have String.length 1 when converted to string.
+                    -- e.g. String.length "🌈" == 2
+                    fixedPaddingLength : Int
+                    fixedPaddingLength = ((char |> String.fromChar |> String.length) * paddingLength)
+
                     padding : FormattedText Markup
                     padding =
                         FT.fromChar char
@@ -562,7 +567,7 @@ padLeft =
                             |> FT.repeat paddingLength
                 in
                 FT.padLeft upTo char [ Yellow ] formatted
-                    |> FT.left paddingLength
+                    |> FT.left fixedPaddingLength
                     |> equals padding
         ]
 
@@ -580,7 +585,12 @@ padRight =
                 let
                     paddingLength : Int
                     paddingLength =
-                        upTo - FT.length formatted
+                        upTo - (FT.length formatted)
+
+                    -- Not all characters have String.length 1 when converted to string
+                    -- e.g. String.length "🌈" == 2
+                    fixedPaddingLength : Int
+                    fixedPaddingLength = ((char |> String.fromChar |> String.length) * paddingLength)
 
                     padding : FormattedText Markup
                     padding =
@@ -589,7 +599,7 @@ padRight =
                             |> FT.repeat paddingLength
                 in
                 FT.padRight upTo char [ Yellow ] formatted
-                    |> FT.right paddingLength
+                    |> FT.right fixedPaddingLength
                     |> equals padding
         ]
 
