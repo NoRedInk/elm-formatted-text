@@ -1,17 +1,17 @@
 module Spec.FormattedText exposing (..)
 
 import Char
+import Debug
 import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
-import Spec.FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
 import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, char, int, intRange, list, string)
 import Regex
+import Spec.FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
 import Test exposing (..)
 import Util exposing (assertForAll, atLeastOneList, equalLists, equalRanges, just, rangesDontOverlap, shortList)
-import Debug
 
 
 noOverlap : Test
@@ -367,6 +367,7 @@ indexes =
                         (\index ->
                             if List.member index formattedIndexes then
                                 assertPartAt part whole index
+
                             else
                                 assertPartNotAt part whole index
                         )
@@ -390,6 +391,7 @@ contains =
                     -- This branch where we have a match is hard to test because we'd need an assertAny.
                     -- It's also already covered by the previous test.
                     Expect.pass
+
                 else
                     stringIndexes
                         |> assertForAll (\index -> assertPartNotAt part whole index)
@@ -426,6 +428,7 @@ startsWith =
                 in
                 if FT.isEmpty start then
                     Expect.pass
+
                 else
                     FT.startsWith modifiedStart whole
                         |> Expect.equal False
@@ -463,6 +466,7 @@ endsWith =
                 in
                 if FT.isEmpty end then
                     Expect.pass
+
                 else
                     FT.endsWith modifiedStart whole
                         |> Expect.equal False
@@ -482,6 +486,7 @@ toInt =
                             -- This result is expected to contain an Int.
                             if Debug.toString result == "Ok NaN" then
                                 Expect.pass
+
                             else
                                 result |> Expect.equal (FT.text formatted |> String.toInt)
                        )
@@ -558,7 +563,8 @@ padLeft =
                     -- Not all characters have String.length 1 when converted to string.
                     -- e.g. String.length "🌈" == 2
                     fixedPaddingLength : Int
-                    fixedPaddingLength = ((char |> String.fromChar |> String.length) * paddingLength)
+                    fixedPaddingLength =
+                        (char |> String.fromChar |> String.length) * paddingLength
 
                     padding : FormattedText Markup
                     padding =
@@ -585,12 +591,13 @@ padRight =
                 let
                     paddingLength : Int
                     paddingLength =
-                        upTo - (FT.length formatted)
+                        upTo - FT.length formatted
 
                     -- Not all characters have String.length 1 when converted to string
                     -- e.g. String.length "🌈" == 2
                     fixedPaddingLength : Int
-                    fixedPaddingLength = ((char |> String.fromChar |> String.length) * paddingLength)
+                    fixedPaddingLength =
+                        (char |> String.fromChar |> String.length) * paddingLength
 
                     padding : FormattedText Markup
                     padding =

@@ -2,9 +2,9 @@ module Spec.FormattedText.Tree exposing (..)
 
 import Expect
 import FormattedText as FT
-import Spec.FormattedText.Fuzz
 import FormattedText.Tree
 import Fuzz
+import Spec.FormattedText.Fuzz
 import Test exposing (..)
 
 

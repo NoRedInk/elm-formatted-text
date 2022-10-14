@@ -6,13 +6,13 @@ Some of these methods might fit nicely into libraries.
 
 -}
 
+import Basics.Extra exposing (..)
+import Debug
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
 import FormattedText.Internal as Internal
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
-import Debug
-import Basics.Extra exposing (..)
 
 
 just : (a -> Expectation) -> (Maybe a -> Expectation)
@@ -29,7 +29,7 @@ equalRanges : EqualCheck (List (Range markup))
 equalRanges rangesA rangesB =
     Internal.equalRanges rangesA rangesB
         |> Expect.equal True
-        |> Expect.onFail "Expected ranges to be true." 
+        |> Expect.onFail "Expected ranges to be true."
 
 
 rangesDontOverlap : List (Range markup) -> Expectation

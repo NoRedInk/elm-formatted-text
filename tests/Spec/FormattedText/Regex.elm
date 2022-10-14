@@ -1,14 +1,14 @@
 module Spec.FormattedText.Regex exposing (..)
 
+import Basics.Extra exposing (..)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
-import Spec.FormattedText.Fuzz exposing (Markup, equals, formattedText)
 import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, int, intRange, list, string)
 import Regex
+import Spec.FormattedText.Fuzz exposing (Markup, equals, formattedText)
 import Test exposing (..)
 import Util exposing (assertForAll)
-import Basics.Extra exposing (..)
 
 
 find : Test

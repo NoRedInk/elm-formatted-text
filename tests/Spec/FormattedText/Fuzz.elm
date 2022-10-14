@@ -1,20 +1,28 @@
-module Spec.FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
+module Spec.FormattedText.Fuzz exposing
+    ( Markup(..)
+    , formattedText
+    , customFormattedText
+    , markup
+    , equals
+    )
 
 {-| Fuzzers of FormattedText types
 This can be used to test code that makes use of FormattedText.
+
 @docs Markup
 @docs formattedText
 @docs customFormattedText
 @docs markup
 @docs equals
+
 -}
 
+import Debug
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
 import FormattedText.Internal as Internal
 import Fuzz exposing (..)
-import Debug
 
 
 {-| A arbitrary Markup type used by the formattedText fuzzer.
@@ -88,6 +96,7 @@ protoRange markupFuzzer =
         safeMod n m =
             if m == 0 then
                 0
+
             else
                 remainderBy n m
     in
@@ -123,4 +132,4 @@ equals : EqualCheck (FormattedText markup)
 equals formattedA formattedB =
     Internal.equal formattedA formattedB
         |> Expect.equal True
-        |> Expect.onFail ( "Expected the formatted text to be the same." ++ Debug.toString (formattedA, formattedB))
+        |> Expect.onFail ("Expected the formatted text to be the same." ++ Debug.toString ( formattedA, formattedB ))
