@@ -398,10 +398,11 @@ slice =
 -}
 lines : FormattedText markup -> List (FormattedText markup)
 lines formatted =
-    formatted
-        |> split "\n\u{000D}"
-        |> List.concatMap (split "\n")
-        |> List.concatMap (split "\u{000D}")
+    let
+        regex =
+            Maybe.withDefault Regex.never (Regex.fromString "\\r\\n|\\r|\\n")
+    in
+    FormattedText.Regex.split regex formatted
 
 
 {-| Split a FormattedText on whitespace. The equivalent of `String.words`.
