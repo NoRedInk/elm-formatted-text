@@ -62,6 +62,14 @@ left n formatted =
         (ranges formatted)
 
 
+
+-- WARNING: elm's String.right does not consider code points as
+-- a full character and will cut your emojis in half like so:
+-- > String.right 1 "🌈"
+-- "�" : String
+-- Protect your emojis.
+
+
 right : Int -> FormattedText markup -> FormattedText markup
 right n formatted =
     let

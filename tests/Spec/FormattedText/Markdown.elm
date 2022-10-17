@@ -1,9 +1,8 @@
-module Spec.FormattedText.Markdown
-    exposing
-        ( parseInlineThenViewInline
-        , parseList
-        , parseThenView
-        )
+module Spec.FormattedText.Markdown exposing
+    ( parseInlineThenViewInline
+    , parseList
+    , parseThenView
+    )
 
 import Expect
 import FormattedText

@@ -10,8 +10,8 @@ suite : Test
 suite =
     describe "Parser"
         [ fuzz2 (parser (Fuzz.constant identity)) Fuzz.string "Parser an entire string" <|
-            \parser string ->
-                Parser.parse string parser
+            \parser_ string ->
+                Parser.parse string parser_
                     |> String.concat
                     |> Expect.equal string
         ]

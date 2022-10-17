@@ -2,9 +2,9 @@ module Spec.FormattedText.Tree exposing (..)
 
 import Expect
 import FormattedText as FT
-import FormattedText.Fuzz
 import FormattedText.Tree
 import Fuzz
+import Spec.FormattedText.Fuzz
 import Test exposing (..)
 
 
@@ -34,10 +34,10 @@ suite =
                     [ FT.fromString "Nest "
                     , FT.concat
                         [ FT.fromString "Yellow"
-                            |> FT.formatAll FormattedText.Fuzz.Yellow
+                            |> FT.formatAll Spec.FormattedText.Fuzz.Yellow
                         , FT.fromString " inside of Red"
                         ]
-                        |> FT.formatAll FormattedText.Fuzz.Red
+                        |> FT.formatAll Spec.FormattedText.Fuzz.Red
                     , FT.fromString "."
                     ]
                     |> FormattedText.Tree.trees identity toXmlNode
@@ -48,66 +48,66 @@ suite =
                 FT.concat
                     [ FT.concat
                         [ FT.fromString "a"
-                            |> FT.formatAll FormattedText.Fuzz.Yellow
+                            |> FT.formatAll Spec.FormattedText.Fuzz.Yellow
                         , FT.fromString "b"
                         , FT.fromString "c"
-                            |> FT.formatAll FormattedText.Fuzz.Yellow
+                            |> FT.formatAll Spec.FormattedText.Fuzz.Yellow
                         ]
-                        |> FT.formatAll FormattedText.Fuzz.Red
+                        |> FT.formatAll Spec.FormattedText.Fuzz.Red
                     , FT.fromString "d"
                     ]
                     |> FormattedText.Tree.trees identity toXmlNode
                     |> String.concat
                     |> Expect.equal "<red><yellow>a</yellow>b<yellow>c</yellow></red>d"
-        , fuzz FormattedText.Fuzz.formattedText "trees and fromTrees are duals" <|
+        , fuzz Spec.FormattedText.Fuzz.formattedText "trees and fromTrees are duals" <|
             \formatted ->
                 FormattedText.Tree.trees Leaf Node formatted
                     |> fromTrees
-                    |> FormattedText.Fuzz.equals formatted
+                    |> Spec.FormattedText.Fuzz.equals formatted
         , test "trees and fromTrees are duals (known hard case)" <|
             \_ ->
                 let
                     formatted =
                         FT.fromString "abcd"
-                            |> FT.addRange { tag = FormattedText.Fuzz.Red, start = 1, end = 3 }
-                            |> FT.addRange { tag = FormattedText.Fuzz.Green, start = 1, end = 3 }
-                            |> FT.addRange { tag = FormattedText.Fuzz.Blue, start = 0, end = 2 }
+                            |> FT.addRange { tag = Spec.FormattedText.Fuzz.Red, start = 1, end = 3 }
+                            |> FT.addRange { tag = Spec.FormattedText.Fuzz.Green, start = 1, end = 3 }
+                            |> FT.addRange { tag = Spec.FormattedText.Fuzz.Blue, start = 0, end = 2 }
                 in
                 FormattedText.Tree.trees Leaf Node formatted
                     |> fromTrees
-                    |> FormattedText.Fuzz.equals formatted
+                    |> Spec.FormattedText.Fuzz.equals formatted
         ]
 
 
-toXmlNode : FormattedText.Fuzz.Markup -> List String -> String
+toXmlNode : Spec.FormattedText.Fuzz.Markup -> List String -> String
 toXmlNode markup children =
     "<" ++ tag markup ++ ">" ++ String.concat children ++ "</" ++ tag markup ++ ">"
 
 
-tag : FormattedText.Fuzz.Markup -> String
+tag : Spec.FormattedText.Fuzz.Markup -> String
 tag markup =
     case markup of
-        FormattedText.Fuzz.Red ->
+        Spec.FormattedText.Fuzz.Red ->
             "red"
 
-        FormattedText.Fuzz.Blue ->
+        Spec.FormattedText.Fuzz.Blue ->
             "blue"
 
-        FormattedText.Fuzz.Green ->
+        Spec.FormattedText.Fuzz.Green ->
             "green"
 
-        FormattedText.Fuzz.Yellow ->
+        Spec.FormattedText.Fuzz.Yellow ->
             "yellow"
 
 
 dual : Test
 dual =
-    fuzz FormattedText.Fuzz.formattedText "rangeForest doesn't mangle ranges" <|
+    fuzz Spec.FormattedText.Fuzz.formattedText "rangeForest doesn't mangle ranges" <|
         \formatted ->
             FormattedText.Tree.rangeForest formatted
                 |> List.concatMap toRanges
                 |> List.foldl FT.addRange (FT.fromString (FT.text formatted))
-                |> FormattedText.Fuzz.equals formatted
+                |> Spec.FormattedText.Fuzz.equals formatted
 
 
 fromTrees : List (Tree markup) -> FT.FormattedText markup

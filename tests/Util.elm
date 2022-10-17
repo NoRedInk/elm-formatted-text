@@ -6,6 +6,8 @@ Some of these methods might fit nicely into libraries.
 
 -}
 
+import Basics.Extra exposing (..)
+import Debug
 import EqualCheck exposing (EqualCheck)
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
@@ -26,7 +28,8 @@ just expectation maybe =
 equalRanges : EqualCheck (List (Range markup))
 equalRanges rangesA rangesB =
     Internal.equalRanges rangesA rangesB
-        |> Expect.true "Expected ranges to be true."
+        |> Expect.equal True
+        |> Expect.onFail "Expected ranges to be true."
 
 
 rangesDontOverlap : List (Range markup) -> Expectation
@@ -39,7 +42,7 @@ rangesDontOverlap ranges =
     ranges
         |> List.sortBy .start
         |> List.concatMap bounds
-        |> (\bounds -> bounds |> Expect.equal (List.sort bounds))
+        |> (\bounds_ -> bounds_ |> Expect.equal (List.sort bounds_))
 
 
 {-| Whereas `Expect.all` allows you to run multiple assertions against a single piece of data,
@@ -88,8 +91,8 @@ equalLists check xs ys =
         ( [], [] ) ->
             Expect.pass
 
-        ( x :: xs, y :: ys ) ->
-            expectAnd (check x y) (equalLists check xs ys)
+        ( x :: xs_, y :: ys_ ) ->
+            expectAnd (check x y) (equalLists check xs_ ys_)
 
         _ ->
-            Expect.fail <| "Lists are not the same: " ++ toString ( xs, ys )
+            Expect.fail <| "Lists are not the same: " ++ Debug.toString ( xs, ys )

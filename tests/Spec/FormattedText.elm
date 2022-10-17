@@ -1,14 +1,15 @@
 module Spec.FormattedText exposing (..)
 
 import Char
+import Debug
 import Dict
 import Dict.Extra
 import Expect exposing (Expectation)
 import FormattedText as FT exposing (FormattedText, Range)
-import FormattedText.Fuzz exposing (Markup(Yellow), customFormattedText, equals, formattedText, markup)
 import FormattedText.Regex as FTRegex
 import Fuzz exposing (Fuzzer, char, int, intRange, list, string)
 import Regex
+import Spec.FormattedText.Fuzz exposing (Markup(..), customFormattedText, equals, formattedText, markup)
 import Test exposing (..)
 import Util exposing (assertForAll, atLeastOneList, equalLists, equalRanges, just, rangesDontOverlap, shortList)
 
@@ -18,7 +19,7 @@ noOverlap =
     fuzz formattedText "Formatted text ranges with equal markup never overlap" <|
         \formatted ->
             FT.ranges formatted
-                |> Dict.Extra.groupBy (.tag >> toString)
+                |> Dict.Extra.groupBy (.tag >> Debug.toString)
                 |> Dict.values
                 |> assertForAll rangesDontOverlap
 
@@ -72,7 +73,7 @@ chunks =
             FT.formattedText
                 "foo bar baz"
                 [ { tag = "a", start = 0, end = 3 }, { tag = "b", start = 8, end = 11 } ]
-                |> FT.chunks (,)
+                |> FT.chunks Tuple.pair
                 |> Expect.equal [ ( "foo", [ "a" ] ), ( " bar ", [] ), ( "baz", [ "b" ] ) ]
 
 
@@ -81,7 +82,7 @@ chunksUnchunkDuality =
     fuzz formattedText "chunks and unchunk are duals" <|
         \formatted ->
             formatted
-                |> FT.chunks (,)
+                |> FT.chunks Tuple.pair
                 |> FT.unchunk
                 |> equals formatted
 
@@ -300,8 +301,7 @@ words =
                 let
                     noWhitespace =
                         FTRegex.replace
-                            Regex.All
-                            (Regex.regex "\\s+")
+                            (Regex.fromString "\\s+" |> Maybe.withDefault Regex.never)
                             (always FT.empty)
                             formatted
                 in
@@ -367,6 +367,7 @@ indexes =
                         (\index ->
                             if List.member index formattedIndexes then
                                 assertPartAt part whole index
+
                             else
                                 assertPartNotAt part whole index
                         )
@@ -390,6 +391,7 @@ contains =
                     -- This branch where we have a match is hard to test because we'd need an assertAny.
                     -- It's also already covered by the previous test.
                     Expect.pass
+
                 else
                     stringIndexes
                         |> assertForAll (\index -> assertPartNotAt part whole index)
@@ -411,7 +413,8 @@ startsWith =
                         FT.append start end
                 in
                 FT.startsWith start whole
-                    |> Expect.true "Expected startsWith to return true"
+                    |> Expect.equal True
+                    |> Expect.onFail "Expected startsWith to return true"
         , fuzz2 formattedText formattedText "returns false if markup does not match" <|
             \start end ->
                 let
@@ -425,9 +428,11 @@ startsWith =
                 in
                 if FT.isEmpty start then
                     Expect.pass
+
                 else
                     FT.startsWith modifiedStart whole
-                        |> Expect.false "Expected startsWith to return false"
+                        |> Expect.equal False
+                        |> Expect.onFail "Expected startsWith to return false"
         ]
 
 
@@ -446,7 +451,8 @@ endsWith =
                         FT.append start end
                 in
                 FT.endsWith end whole
-                    |> Expect.true "Expected endsWith to return true"
+                    |> Expect.equal True
+                    |> Expect.onFail "Expected endsWith to return true"
         , fuzz2 formattedText formattedText "returns false if markup does not match" <|
             \start end ->
                 let
@@ -460,9 +466,11 @@ endsWith =
                 in
                 if FT.isEmpty end then
                     Expect.pass
+
                 else
                     FT.endsWith modifiedStart whole
-                        |> Expect.false "Expected endsWith to return false"
+                        |> Expect.equal False
+                        |> Expect.onFail "Expected endsWith to return false"
         ]
 
 
@@ -476,8 +484,9 @@ toInt =
                             -- Weirdly we can get 'Ok NaN' here, for instance for the string "+".
                             -- We can't use isNaN, because elm-make will only allow use of that on floats.
                             -- This result is expected to contain an Int.
-                            if toString result == "Ok NaN" then
+                            if Debug.toString result == "Ok NaN" then
                                 Expect.pass
+
                             else
                                 result |> Expect.equal (FT.text formatted |> String.toInt)
                        )
@@ -551,6 +560,12 @@ padLeft =
                     paddingLength =
                         upTo - FT.length formatted
 
+                    -- Not all characters have String.length 1 when converted to string.
+                    -- e.g. String.length "🌈" == 2
+                    fixedPaddingLength : Int
+                    fixedPaddingLength =
+                        (char |> String.fromChar |> String.length) * paddingLength
+
                     padding : FormattedText Markup
                     padding =
                         FT.fromChar char
@@ -558,7 +573,7 @@ padLeft =
                             |> FT.repeat paddingLength
                 in
                 FT.padLeft upTo char [ Yellow ] formatted
-                    |> FT.left paddingLength
+                    |> FT.left fixedPaddingLength
                     |> equals padding
         ]
 
@@ -578,6 +593,12 @@ padRight =
                     paddingLength =
                         upTo - FT.length formatted
 
+                    -- Not all characters have String.length 1 when converted to string
+                    -- e.g. String.length "🌈" == 2
+                    fixedPaddingLength : Int
+                    fixedPaddingLength =
+                        (char |> String.fromChar |> String.length) * paddingLength
+
                     padding : FormattedText Markup
                     padding =
                         FT.fromChar char
@@ -585,7 +606,7 @@ padRight =
                             |> FT.repeat paddingLength
                 in
                 FT.padRight upTo char [ Yellow ] formatted
-                    |> FT.right paddingLength
+                    |> FT.right fixedPaddingLength
                     |> equals padding
         ]
 
@@ -649,8 +670,7 @@ filter =
                 FT.filter Char.isUpper formatted
                     |> equals
                         (FTRegex.replace
-                            Regex.All
-                            (Regex.regex "[^A-Z]+")
+                            (Regex.fromString "[^A-Z]+" |> Maybe.withDefault Regex.never)
                             (always FT.empty)
                             formatted
                         )
